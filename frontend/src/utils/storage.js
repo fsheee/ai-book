@@ -32,6 +32,11 @@ export function generateUserId() {
  * @returns {string} UUID user identifier
  */
 export function getUserId() {
+  // Check if running in browser (not SSR)
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+    return 'ssr-temp-id';
+  }
+
   try {
     let userId = localStorage.getItem(STORAGE_KEYS.USER_ID);
 
@@ -57,6 +62,11 @@ export function getUserId() {
  * @returns {string} Chat session ID
  */
 export function getChatId() {
+  // Check if running in browser (not SSR)
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+    return `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
   try {
     let chatId = localStorage.getItem(STORAGE_KEYS.CURRENT_CHAT_ID);
 
@@ -79,6 +89,12 @@ export function getChatId() {
  */
 export function createNewChatSession() {
   const chatId = `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+  // Check if running in browser (not SSR)
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+    return chatId;
+  }
+
   try {
     localStorage.setItem(STORAGE_KEYS.CURRENT_CHAT_ID, chatId);
   } catch (error) {
@@ -98,6 +114,11 @@ export function createNewChatSession() {
  * @param {string} [message.query_type] - "rag" or "selection"
  */
 export function saveMessage(message) {
+  // Check if running in browser (not SSR)
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+    return message;
+  }
+
   try {
     const history = loadChatHistory();
     const timestamp = new Date().toISOString();
@@ -130,6 +151,11 @@ export function saveMessage(message) {
  * @returns {Array} Array of message objects
  */
 export function loadChatHistory(chatId = null) {
+  // Check if running in browser (not SSR)
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+    return [];
+  }
+
   try {
     const historyJson = localStorage.getItem(STORAGE_KEYS.CHAT_HISTORY);
 
@@ -172,6 +198,11 @@ export function loadCurrentChatHistory() {
  * Clear entire chat history from LocalStorage
  */
 export function clearChatHistory() {
+  // Check if running in browser (not SSR)
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+    return;
+  }
+
   try {
     localStorage.removeItem(STORAGE_KEYS.CHAT_HISTORY);
     localStorage.removeItem(STORAGE_KEYS.CURRENT_CHAT_ID);
@@ -277,15 +308,20 @@ export function saveSettings(settings) {
  * @returns {Object} Settings object with defaults
  */
 export function loadSettings() {
+  const defaults = {
+    streamingEnabled: true,
+    soundEnabled: false,
+    theme: 'auto', // 'light', 'dark', 'auto'
+    fontSize: 'medium', // 'small', 'medium', 'large'
+  };
+
+  // Check if running in browser (not SSR)
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+    return defaults;
+  }
+
   try {
     const settingsJson = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-
-    const defaults = {
-      streamingEnabled: true,
-      soundEnabled: false,
-      theme: 'auto', // 'light', 'dark', 'auto'
-      fontSize: 'medium', // 'small', 'medium', 'large'
-    };
 
     if (!settingsJson) {
       return defaults;
@@ -294,12 +330,7 @@ export function loadSettings() {
     return { ...defaults, ...JSON.parse(settingsJson) };
   } catch (error) {
     console.error('Failed to load settings:', error);
-    return {
-      streamingEnabled: true,
-      soundEnabled: false,
-      theme: 'auto',
-      fontSize: 'medium',
-    };
+    return defaults;
   }
 }
 
