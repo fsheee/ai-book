@@ -1,0 +1,482 @@
+openapi: 3.0.3
+info:
+  title: Humanoid Robotics RAG Chatbot API
+  version: 1.0.0
+  description: |
+    RESTful API for the RAG (Retrieval-Augmented Generation) chatbot integrated with
+    the Humanoid Robotics textbook. Supports querying chapter content, retrieving
+    relevant sections, and managing conversation history.
+  contact:
+    name: AI Book Project
+    url: https://github.com/your-repo/ai-book
+
+servers:
+  - url: https://api.humanoid-robotics.dev/v1
+    description: Production server
+  - url: http://localhost:8000/v1
+    description: Local development server
+
+tags:
+  - name: chat
+    description: Chatbot query and response endpoints
+  - name: content
+    description: Content ingestion and management
+  - name: health
+    description: Service health checks
+
+paths:
+  /chat/query:
+    post:
+      tags:
+        - chat
+      summary: Submit a chatbot query
+      description: |
+        Submit a user question to the RAG chatbot. Optionally include selected text
+        from the chapter for context-aware responses. Returns an AI-generated answer
+        with cited sources from the textbook.
+      operationId: submitQuery
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatQueryRequest'
+            examples:
+              simple_query:
+                summary: Simple question without context
+                value:
+                  user_text: "What is forward kinematics?"
+                  session_id: "sess_abc123"
+              contextual_query:
+                summary: Question with selected text context
+                value:
+                  user_text: "Explain this equation"
+                  selected_context: "T = [R | p; 0 0 0 1] where R is the rotation matrix..."
+                  chapter_filter: 2
+                  session_id: "sess_abc123"
+      responses:
+        '200':
+          description: Successful query response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatQueryResponse'
+        '400':
+          description: Invalid request (e.g., empty query text)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /chat/history:
+    get:
+      tags:
+        - chat
+      summary: Retrieve conversation history
+      description: Get all queries and responses for a given session.
+      operationId: getHistory
+      parameters:
+        - name: session_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Unique session identifier
+          example: "sess_abc123"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+          description: Maximum number of messages to return
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of messages to skip (for pagination)
+      responses:
+        '200':
+          description: Conversation history retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationHistory'
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /content/ingest:
+    post:
+      tags:
+        - content
+      summary: Ingest new chapter content
+      description: |
+        Add new chapter content to the RAG system. Chunks the text, generates embeddings,
+        and stores them in Qdrant for retrieval. **Admin only**.
+      operationId: ingestContent
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContentIngestionRequest'
+      responses:
+        '201':
+          description: Content ingested successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentIngestionResponse'
+        '400':
+          description: Invalid content format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized (missing or invalid API key)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /content/chapters:
+    get:
+      tags:
+        - content
+      summary: List available chapters
+      description: Retrieve metadata for all chapters in the textbook.
+      operationId: listChapters
+      responses:
+        '200':
+          description: List of chapters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chapters:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ChapterMetadata'
+
+  /health:
+    get:
+      tags:
+        - health
+      summary: Health check
+      description: Check if the API service is running.
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  timestamp:
+                    type: string
+                    format: date-time
+
+components:
+  schemas:
+    ChatQueryRequest:
+      type: object
+      required:
+        - user_text
+        - session_id
+      properties:
+        user_text:
+          type: string
+          minLength: 3
+          maxLength: 1000
+          description: User's question or prompt
+          example: "What is forward kinematics?"
+        selected_context:
+          type: string
+          maxLength: 5000
+          description: |
+            Optional text selected by the user from the chapter. Used to provide
+            additional context for the query.
+          example: "Forward kinematics is the process of calculating..."
+        chapter_filter:
+          type: integer
+          minimum: 1
+          description: Optional chapter ID to limit search scope
+          example: 2
+        session_id:
+          type: string
+          description: Unique session identifier for conversation tracking
+          example: "sess_abc123"
+
+    ChatQueryResponse:
+      type: object
+      required:
+        - query_id
+        - response_text
+        - sources
+      properties:
+        query_id:
+          type: string
+          format: uuid
+          description: Unique identifier for this query
+          example: "q_12345678-1234-1234-1234-123456789abc"
+        response_text:
+          type: string
+          description: AI-generated response to the query
+          example: "Forward kinematics is the process of determining the position and orientation of the robot's end-effector given the joint angles..."
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/Source'
+          description: Cited sources from the textbook
+        confidence_score:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Confidence score for the retrieved information (0-1)
+          example: 0.92
+        generation_time_ms:
+          type: integer
+          description: Response generation time in milliseconds
+          example: 1250
+        timestamp:
+          type: string
+          format: date-time
+
+    Source:
+      type: object
+      required:
+        - chapter_id
+        - section_id
+        - section_title
+        - chunk_id
+      properties:
+        chapter_id:
+          type: integer
+          description: Chapter number
+          example: 2
+        section_id:
+          type: string
+          description: Section identifier
+          example: "ch2-forward-kinematics"
+        section_title:
+          type: string
+          description: Human-readable section title
+          example: "Forward Kinematics"
+        chunk_id:
+          type: string
+          format: uuid
+          description: ID of the specific text chunk retrieved
+          example: "chunk_abcdef12-3456-7890-abcd-ef1234567890"
+        relevance_score:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Similarity score for this source (0-1)
+          example: 0.95
+        excerpt:
+          type: string
+          maxLength: 500
+          description: Brief excerpt from the source (for preview)
+          example: "Forward kinematics uses the DH parameters..."
+
+    ConversationHistory:
+      type: object
+      required:
+        - session_id
+        - messages
+      properties:
+        session_id:
+          type: string
+          example: "sess_abc123"
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+          description: List of queries and responses in chronological order
+        total_count:
+          type: integer
+          description: Total number of messages in session
+          example: 42
+
+    Message:
+      type: object
+      required:
+        - id
+        - role
+        - content
+        - timestamp
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "msg_12345678"
+        role:
+          type: string
+          enum: ["user", "assistant"]
+          description: Message sender (user or AI assistant)
+          example: "user"
+        content:
+          type: string
+          description: Message content (query or response)
+          example: "What is forward kinematics?"
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/Source'
+          description: Only present for assistant messages
+        timestamp:
+          type: string
+          format: date-time
+
+    ContentIngestionRequest:
+      type: object
+      required:
+        - chapter_id
+        - sections
+      properties:
+        chapter_id:
+          type: integer
+          minimum: 1
+          description: Chapter identifier
+          example: 2
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/SectionContent'
+          description: Array of sections to ingest
+
+    SectionContent:
+      type: object
+      required:
+        - section_id
+        - title
+        - content
+      properties:
+        section_id:
+          type: string
+          example: "ch2-forward-kinematics"
+        title:
+          type: string
+          example: "Forward Kinematics"
+        content:
+          type: string
+          description: Full section content in Markdown
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional metadata (difficulty, tags, etc.)
+
+    ContentIngestionResponse:
+      type: object
+      required:
+        - status
+        - chunks_created
+      properties:
+        status:
+          type: string
+          enum: ["success", "partial", "failed"]
+          example: "success"
+        chunks_created:
+          type: integer
+          description: Number of text chunks created and indexed
+          example: 87
+        embeddings_generated:
+          type: integer
+          description: Number of embeddings generated
+          example: 87
+        ingestion_time_ms:
+          type: integer
+          description: Total ingestion time in milliseconds
+          example: 4500
+        errors:
+          type: array
+          items:
+            type: string
+          description: List of errors encountered (if any)
+
+    ChapterMetadata:
+      type: object
+      required:
+        - id
+        - title
+        - slug
+      properties:
+        id:
+          type: integer
+          example: 2
+        title:
+          type: string
+          example: "Kinematics and Dynamics"
+        slug:
+          type: string
+          example: "kinematics-dynamics"
+        description:
+          type: string
+          example: "Explore the mathematical foundations of humanoid robot motion and forces."
+        section_count:
+          type: integer
+          example: 5
+        estimated_time:
+          type: integer
+          description: Estimated reading time in minutes
+          example: 45
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: "INVALID_REQUEST"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Query text must be between 3 and 1000 characters"
+        details:
+          type: object
+          additionalProperties: true
+          description: Additional error context
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for admin operations (content ingestion)

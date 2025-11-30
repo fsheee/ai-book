@@ -113,3 +113,12 @@
 - **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
 - **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
 - **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
+
+## Constitution Compliance *(mandatory)*
+
+- **Core Principles**: Ensure the feature specification aligns with AI Agent Responsibilities, Spec-Driven Workflow Rules, RAG Chatbot Constraints, Incremental Validation, and Operational Standards.
+- **Project Sections**: Verify the specification addresses the AI-Generated Book and RAG Chatbot Development sections.
+- **Execution Guidelines**: Adhere to the defined guidelines for task execution, PHR creation, ADR suggestion policies, and minimum acceptance criteria.
+- **Architect Guidelines**: Consider the scope & dependencies, interfaces & APIs, NFRs and budgets, data management, operational readiness, and risk analysis & mitigation.
+- **Project Structure**: Ensure the specification respects the defined file and folder layout and template usage.
+- **Versioning and Governance**: Confirm compliance with versioning and governance rules.

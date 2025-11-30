@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 350" width="400" height="350">
+  <!-- Title -->
+  <text x="200" y="25" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle">Pendulum Free Body Diagram</text>
+
+  <!-- Pivot point -->
+  <circle cx="200" cy="80" r="6" fill="#333"/>
+  <line x1="180" y1="70" x2="220" y2="70" stroke="#333" stroke-width="3"/>
+  <line x1="185" y1="70" x2="180" y2="60" stroke="#333" stroke-width="2"/>
+  <line x1="190" y1="70" x2="185" y2="60" stroke="#333" stroke-width="2"/>
+  <line x1="195" y1="70" x2="190" y2="60" stroke="#333" stroke-width="2"/>
+  <line x1="200" y1="70" x2="195" y2="60" stroke="#333" stroke-width="2"/>
+  <line x1="205" y1="70" x2="200" y2="60" stroke="#333" stroke-width="2"/>
+  <line x1="210" y1="70" x2="205" y2="60" stroke="#333" stroke-width="2"/>
+  <line x1="215" y1="70" x2="210" y2="60" stroke="#333" stroke-width="2"/>
+  <line x1="220" y1="70" x2="215" y2="60" stroke="#333" stroke-width="2"/>
+
+  <!-- Rod -->
+  <line x1="200" y1="80" x2="280" y2="220" stroke="#666" stroke-width="3"/>
+
+  <!-- Mass -->
+  <circle cx="280" cy="220" r="20" fill="#2563eb" stroke="#1e40af" stroke-width="2"/>
+  <text x="280" y="227" font-family="Arial" font-size="14" fill="white" text-anchor="middle" font-weight="bold">m</text>
+
+  <!-- Length label -->
+  <line x1="195" y1="80" x2="195" y2="220" stroke="#888" stroke-width="1" stroke-dasharray="5,5"/>
+  <line x1="190" y1="80" x2="200" y2="80" stroke="#888" stroke-width="1"/>
+  <line x1="190" y1="220" x2="200" y2="220" stroke="#888" stroke-width="1"/>
+  <text x="185" y="155" font-family="Arial" font-size="14" fill="#555" text-anchor="end">l</text>
+
+  <!-- Angle theta -->
+  <path d="M 200 120 Q 220 130 230 150" stroke="#dc2626" stroke-width="2" fill="none"/>
+  <text x="235" y="140" font-family="Arial" font-size="14" fill="#dc2626" font-weight="bold">θ</text>
+
+  <!-- Vertical reference line -->
+  <line x1="200" y1="80" x2="200" y2="260" stroke="#888" stroke-width="1" stroke-dasharray="5,5"/>
+  <text x="205" y="270" font-family="Arial" font-size="12" fill="#888">vertical</text>
+
+  <!-- Force vectors -->
+  <!-- Gravity (mg) -->
+  <defs>
+    <marker id="arrowred" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrowgreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrowblue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+
+  <line x1="280" y1="240" x2="280" y2="300" stroke="#dc2626" stroke-width="3" marker-end="url(#arrowred)"/>
+  <text x="290" y="275" font-family="Arial" font-size="14" fill="#dc2626" font-weight="bold">mg</text>
+
+  <!-- Tension T -->
+  <line x1="280" y1="200" x2="215" y2="110" stroke="#16a34a" stroke-width="3" marker-end="url(#arrowgreen)"/>
+  <text x="240" y="150" font-family="Arial" font-size="14" fill="#16a34a" font-weight="bold">T</text>
+
+  <!-- Tangential component -->
+  <line x1="280" y1="220" x2="320" y2="270" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrowblue)"/>
+  <text x="330" y="255" font-family="Arial" font-size="13" fill="#2563eb">mg sin θ</text>
+
+  <!-- Radial component (dashed) -->
+  <line x1="280" y1="220" x2="268" y2="258" stroke="#888" stroke-width="2" stroke-dasharray="3,3"/>
+  <text x="250" y="250" font-family="Arial" font-size="12" fill="#888">mg cos θ</text>
+
+  <!-- Equation box -->
+  <rect x="20" y="280" width="180" height="55" fill="#f0f9ff" stroke="#2563eb" stroke-width="2" rx="5"/>
+  <text x="110" y="300" font-family="Arial" font-size="13" text-anchor="middle" font-weight="bold">Equation of Motion:</text>
+  <text x="110" y="318" font-family="Arial" font-size="12" text-anchor="middle">ml²θ̈ + mgl sin θ = τ</text>
+  <text x="110" y="332" font-family="Arial" font-size="11" text-anchor="middle" fill="#666">(τ = applied torque)</text>
+
+  <!-- Legend -->
+  <rect x="220" y="280" width="160" height="55" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" rx="5"/>
+  <text x="300" y="298" font-family="Arial" font-size="11" text-anchor="middle" font-weight="bold">Forces:</text>
+  <text x="300" y="313" font-family="Arial" font-size="10" text-anchor="middle"><tspan fill="#dc2626">●</tspan> Gravity (mg)</text>
+  <text x="300" y="327" font-family="Arial" font-size="10" text-anchor="middle"><tspan fill="#16a34a">●</tspan> Tension (T)</text>
+</svg>

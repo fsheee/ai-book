@@ -1,55 +1,87 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report:
+- Version change: 1.0.0 -> 2.0.0
+- List of modified principles: All principles have been redefined and reorganized.
+- Added sections: Execution Guidelines, Architect Guidelines
+- Removed sections: None (all content has been restructured)
+- Templates requiring updates:
+    - .specify/templates/plan-template.md: ⚠ pending
+    - .specify/templates/spec-template.md: ⚠ pending
+    - .specify/templates/tasks-template.md: ⚠ pending
+- Follow-up TODOs: None
+-->
+# Claude C# Physical AI & Humanoid Robotics Project Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. AI Agent Responsibilities
+- The agent (claude.md) is responsible for generating all textbook content.
+- No static course outlines or external content files are required.
+- Chapters, exercises, and examples are dynamically created based on AI-driven modules.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Spec-Driven Workflow Rules
+- All content creation, planning, and task execution uses Spec-Kit Plus.
+- Utilize `/sp.spec`, `/sp.plan`, `/sp.tasks` commands to define features and writing tasks.
+- Maintain Prompt History Records (PHRs) for all agent interactions.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. RAG Chatbot Constraints
+- Chatbot retrieves answers strictly from the dynamically generated book content.
+- Responses must respect user-selected text for context limitation.
+- Database (Neon Postgres) and vector store (Qdrant) must always reflect the latest book content.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Incremental Validation
+- Book content is generated in small, testable increments.
+- Each generated module and chapter must be validated before continuing.
+- Review checkpoints occur automatically through PHRs and Spec-Kit Plus plans.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Operational Standards
+- Maintain structured project directories:
+  - `claude.md` — Agent execution rules
+  - `specs/` — Dynamic feature specifications, plans, tasks
+  - `history/` — PHRs and ADRs
+- Follow established code style, versioning, and file naming conventions.
 
-### [PRINCIPLE_6_NAME]
+## Project Sections
 
+### AI-Generated Book
+- Chapters, exerokcises, and examples are generated automatically by the agent.
+- Content includes Physical AI, Humanoid Robotics, ROS 2, Gazebo, Unity, NVIDIA Isaac, and GPT-based robotics where relevant.
 
-[PRINCIPLE__DESCRIPTION]
+### RAG Chatbot Development
+- Integration of FastAPI + ChatKit SDK.
+- Use Neon Serverless Postgres as the database.
+- Qdrant Cloud Free Tier for vector storage.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### Governance Rules
+- All generated content and features must comply with this Constitution.
+- Major design or content decisions require an Architectural Decision Record (ADR).
+- Continuous PHR creation for all agent outputs.
+- Versioning: MAJOR.MINOR.BUILD (e.g., 1.0.0)
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+## Execution Guidelines
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+- How the agent executes tasks.
+- How PHRs are created.
+- ADR suggestion policies.
+- Minimum acceptance criteria.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## Architect Guidelines
 
-## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+- Scope & dependencies.
+- Interfaces & APIs.
+- NFRs and budgets.
+- Data management.
+- Operational readiness.
+- Risk analysis & mitigation.
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+## Project Structure
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+- File and folder layout (claude.md, specs/, history/, .specify/).
+- Templates to use for Spec-Kit Plus.
+
+## Versioning and Governance
+
+- Version number, ratified date.
+- Constitution supersedes all informal guidelines.
+
+**Version**: 2.0.0 | **Ratified**: 2025-11-29 | **Last Amended**: 2025-11-29

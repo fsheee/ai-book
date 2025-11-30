@@ -12,6 +12,17 @@ description: "Task list template for feature implementation"
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
+## Constitution Compliance Checklist *(mandatory)*
+
+*GATE: All tasks MUST ensure compliance with the following constitutional principles:*
+
+- **Core Principles**: Tasks must reflect AI Agent Responsibilities, Spec-Driven Workflow Rules, RAG Chatbot Constraints, Incremental Validation, and Operational Standards.
+- **Project Sections**: Tasks must contribute to the AI-Generated Book and RAG Chatbot Development sections.
+- **Execution Guidelines**: Tasks must adhere to the defined guidelines for task execution, PHR creation, ADR suggestion policies, and minimum acceptance criteria.
+- **Architect Guidelines**: Tasks must consider scope & dependencies, interfaces & APIs, NFRs and budgets, data management, operational readiness, and risk analysis & mitigation.
+- **Project Structure**: Tasks must respect the defined file and folder layout and template usage.
+- **Versioning and Governance**: Tasks must ensure compliance with versioning and governance rules.
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)

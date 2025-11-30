@@ -1,0 +1,582 @@
+openapi: 3.0.0
+info:
+  title: RAG Chatbot API
+  version: 1.0.0
+  description: |
+    Retrieval-Augmented Generation API for "Physical AI & Humanoid Robotics" textbook chatbot.
+
+    This API provides two query modes:
+    1. **Full-book RAG**: Semantic search across entire textbook using vector embeddings
+    2. **Selection-based**: Answer questions using only user-selected text context
+
+    ## Authentication
+    All endpoints (except /health) require API key authentication via `X-API-Key` header.
+
+    ## Rate Limiting
+    - 10 requests per minute per user
+    - 100 requests per hour per user
+    - 429 status code returned when limits exceeded
+
+    ## Streaming
+    Chat responses use Server-Sent Events (SSE) for real-time token streaming.
+  contact:
+    name: API Support
+    url: https://github.com/yourusername/ai-book
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://your-backend.railway.app
+    description: Production server (Railway deployment)
+  - url: http://localhost:8000
+    description: Local development server
+
+tags:
+  - name: RAG
+    description: Retrieval-Augmented Generation query endpoints
+  - name: Ingestion
+    description: Textbook content ingestion and embedding
+  - name: Health
+    description: Service health and monitoring
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: |
+        API key for authentication. Obtain from backend admin or environment configuration.
+        Example: `X-API-Key: sk_live_abc123...`
+
+  schemas:
+    RagQueryRequest:
+      type: object
+      required:
+        - question
+        - user_id
+      properties:
+        question:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: User's question about the textbook content
+          example: "Explain the Jacobian matrix method for inverse kinematics in Chapter 5"
+        user_id:
+          type: string
+          format: uuid
+          description: Anonymous user identifier (generated client-side, stored in LocalStorage)
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+    SelectionQueryRequest:
+      type: object
+      required:
+        - question
+        - selected_text
+        - user_id
+      properties:
+        question:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: User's question about the selected text
+          example: "What sensors are mentioned in this passage?"
+        selected_text:
+          type: string
+          minLength: 50
+          maxLength: 8000
+          description: |
+            User-selected text from the textbook (context for answering the question).
+            Minimum 50 characters to ensure meaningful context.
+            Maximum 8000 characters to prevent context window overflow.
+          example: |
+            Sensor fusion is a critical component of modern robotics systems.
+            It combines data from multiple sensors such as IMUs (Inertial Measurement Units),
+            cameras, LIDAR, and encoders to provide a more accurate and robust perception
+            of the robot's environment and state.
+        user_id:
+          type: string
+          format: uuid
+          description: Anonymous user identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+    ChatSource:
+      type: object
+      required:
+        - chapter
+        - section
+        - file_path
+        - relevance_score
+      properties:
+        chapter:
+          type: string
+          description: Chapter title from textbook
+          example: "Chapter 5: Inverse Kinematics"
+        section:
+          type: string
+          description: Section title within chapter
+          example: "5.2 Jacobian Methods"
+        file_path:
+          type: string
+          description: Relative path to source MDX file (for citation links)
+          example: "docs/05-kinematics/inverse.mdx"
+        relevance_score:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Cosine similarity score (0.0 to 1.0, higher = more relevant)
+          example: 0.92
+        text_snippet:
+          type: string
+          description: Short excerpt from the source chunk (optional, for preview)
+          example: "The Jacobian matrix relates joint velocities to end-effector velocities..."
+
+    ChatResponse:
+      type: object
+      required:
+        - answer
+        - sources
+        - chat_id
+        - latency_ms
+      properties:
+        answer:
+          type: string
+          description: Generated answer from the chatbot
+          example: |
+            Inverse kinematics is the process of determining the joint parameters (angles,
+            positions) needed to place a robot's end-effector at a desired position and
+            orientation. The Jacobian method is one approach to solving this problem,
+            particularly for redundant manipulators.
+        sources:
+          type: array
+          description: |
+            Source citations for the answer (retrieved chunks from Qdrant).
+            Empty array for selection-based queries (no vector search performed).
+          items:
+            $ref: '#/components/schemas/ChatSource'
+          example:
+            - chapter: "Chapter 5: Inverse Kinematics"
+              section: "5.2 Jacobian Methods"
+              file_path: "docs/05-kinematics/inverse.mdx"
+              relevance_score: 0.92
+            - chapter: "Chapter 5: Inverse Kinematics"
+              section: "5.3 Analytical Solutions"
+              file_path: "docs/05-kinematics/analytical.mdx"
+              relevance_score: 0.85
+        chat_id:
+          type: string
+          format: uuid
+          description: Unique identifier for this chat interaction (stored in Postgres)
+          example: "7d8f3a2b-4e1c-4d9b-9f6e-3c5a2b1d8e7f"
+        latency_ms:
+          type: integer
+          minimum: 0
+          description: Total response time in milliseconds (from request to response complete)
+          example: 1847
+        model_used:
+          type: string
+          description: OpenAI model used for generation
+          example: "gpt-4-turbo-preview"
+        tokens_used:
+          type: integer
+          description: Total tokens consumed (input + output)
+          example: 542
+
+    IngestRequest:
+      type: object
+      required:
+        - content_dir
+      properties:
+        content_dir:
+          type: string
+          description: Absolute or relative path to Docusaurus content directory containing MDX files
+          example: "/app/docs"
+        force_reingest:
+          type: boolean
+          default: false
+          description: |
+            If true, re-embed all files even if content hash matches existing chunks.
+            If false (default), only ingest new or modified files.
+
+    IngestResponse:
+      type: object
+      required:
+        - status
+        - chunks_created
+        - files_processed
+      properties:
+        status:
+          type: string
+          enum: [success, partial, failed]
+          description: Overall ingestion status
+          example: "success"
+        chunks_created:
+          type: integer
+          minimum: 0
+          description: Total number of chunks created and uploaded to Qdrant
+          example: 1234
+        files_processed:
+          type: integer
+          minimum: 0
+          description: Number of MDX files successfully processed
+          example: 87
+        files_skipped:
+          type: integer
+          minimum: 0
+          description: Number of files skipped (unchanged content_hash)
+          example: 12
+        errors:
+          type: array
+          description: List of errors encountered during ingestion (if any)
+          items:
+            type: object
+            properties:
+              file_path:
+                type: string
+              error_message:
+                type: string
+          example:
+            - file_path: "docs/chapter-06/broken.mdx"
+              error_message: "Invalid frontmatter: missing 'title' field"
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - services
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+          description: |
+            - healthy: All services operational
+            - degraded: Some services failing but core functionality available
+            - unhealthy: Critical services down
+          example: "healthy"
+        services:
+          type: object
+          required:
+            - postgres
+            - qdrant
+            - openai
+          properties:
+            postgres:
+              type: boolean
+              description: Neon Postgres connectivity
+              example: true
+            qdrant:
+              type: boolean
+              description: Qdrant Cloud connectivity
+              example: true
+            openai:
+              type: boolean
+              description: OpenAI API connectivity
+              example: true
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of health check
+          example: "2025-11-30T12:34:56Z"
+        version:
+          type: string
+          description: API version
+          example: "1.0.0"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code or type
+          example: "RATE_LIMIT_EXCEEDED"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Rate limit exceeded. Please try again in 30 seconds."
+        retry_after:
+          type: integer
+          description: Seconds until retry allowed (for rate limit errors)
+          example: 30
+        details:
+          type: object
+          description: Additional error context (optional)
+
+paths:
+  /rag/query:
+    post:
+      tags:
+        - RAG
+      summary: Full-book RAG query
+      description: |
+        Answer a question using Retrieval-Augmented Generation (RAG) from the entire textbook.
+
+        **Process**:
+        1. Generate embedding for the question using OpenAI text-embedding-3-small
+        2. Search Qdrant vector database for top-5 most relevant chunks (cosine similarity ≥ 0.70)
+        3. Construct prompt with retrieved chunks as context
+        4. Generate response using GPT-4-turbo-preview (GPT-4.1-mini)
+        5. Store chat interaction and usage metrics in Postgres
+        6. Stream response tokens back to client via SSE (Server-Sent Events)
+
+        **Rate Limits**: 10/min, 100/hour per user_id
+      operationId: ragQuery
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RagQueryRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '400':
+          description: Invalid request (missing required fields, invalid format)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "INVALID_REQUEST"
+                message: "Field 'question' is required and must be non-empty"
+        '401':
+          description: Unauthorized (missing or invalid API key)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "UNAUTHORIZED"
+                message: "Invalid or missing API key"
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "RATE_LIMIT_EXCEEDED"
+                message: "Rate limit exceeded. Maximum 10 requests per minute."
+                retry_after: 30
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "INTERNAL_ERROR"
+                message: "An unexpected error occurred. Please try again later."
+
+  /rag/from-selection:
+    post:
+      tags:
+        - RAG
+      summary: Selection-based query
+      description: |
+        Answer a question using only the user-selected text as context (no vector search).
+
+        **Process**:
+        1. Validate selected_text (min 50, max 8000 characters)
+        2. Construct prompt with selected_text as context
+        3. Generate response using GPT-4-turbo-preview (GPT-4.1-mini)
+        4. Store chat interaction in Postgres (query_type='selection')
+        5. Stream response tokens back to client via SSE
+
+        **Note**: No vector search performed, `sources` array will be empty in response.
+
+        **Rate Limits**: 10/min, 100/hour per user_id
+      operationId: ragFromSelection
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SelectionQueryRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+              example:
+                answer: "The passage mentions three types of sensors: IMUs (Inertial Measurement Units), cameras, and LIDAR. These sensors are combined through sensor fusion to provide accurate perception."
+                sources: []
+                chat_id: "9a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
+                latency_ms: 892
+                model_used: "gpt-4-turbo-preview"
+                tokens_used: 324
+        '400':
+          description: Invalid request (e.g., selected_text too short or too long)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "INVALID_SELECTION"
+                message: "Selected text must be between 50 and 8000 characters. You provided 23 characters."
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /embed-book:
+    post:
+      tags:
+        - Ingestion
+      summary: Ingest and embed textbook content
+      description: |
+        Parse MDX files from Docusaurus content directory, chunk text, generate embeddings,
+        and upload to Qdrant vector database.
+
+        **Process**:
+        1. Scan `content_dir` for all .mdx files recursively
+        2. Extract frontmatter metadata (title, section) and content
+        3. Chunk content (1200 characters, 200 overlap)
+        4. Compute MD5 hash of each file
+        5. Skip files with unchanged content_hash (unless force_reingest=true)
+        6. Generate embeddings in batches using OpenAI text-embedding-3-small
+        7. Upsert chunks to Qdrant collection 'ai_book'
+
+        **Note**: This is an admin operation, typically run after content updates.
+        May take several minutes for large textbooks.
+      operationId: embedBook
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngestRequest'
+      responses:
+        '200':
+          description: Ingestion complete (success or partial)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestResponse'
+              examples:
+                success:
+                  summary: Successful ingestion
+                  value:
+                    status: "success"
+                    chunks_created: 1234
+                    files_processed: 87
+                    files_skipped: 0
+                    errors: []
+                partial:
+                  summary: Partial success (some files failed)
+                  value:
+                    status: "partial"
+                    chunks_created: 1150
+                    files_processed: 85
+                    files_skipped: 0
+                    errors:
+                      - file_path: "docs/chapter-06/broken.mdx"
+                        error_message: "Invalid frontmatter"
+                      - file_path: "docs/chapter-09/draft.mdx"
+                        error_message: "File empty or unreadable"
+        '400':
+          description: Invalid request (e.g., content_dir doesn't exist)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "INVALID_PATH"
+                message: "Content directory '/app/docs' does not exist"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Ingestion failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: |
+        Check the health status of the API and its dependencies.
+
+        **Checks performed**:
+        - Postgres (Neon): SELECT 1 query
+        - Qdrant: collection info query
+        - OpenAI: API key validation (lightweight request)
+
+        Returns 200 OK even if some services are degraded (status field indicates health level).
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service health status (always returns 200, check 'status' field)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              examples:
+                healthy:
+                  summary: All services healthy
+                  value:
+                    status: "healthy"
+                    services:
+                      postgres: true
+                      qdrant: true
+                      openai: true
+                    timestamp: "2025-11-30T12:34:56Z"
+                    version: "1.0.0"
+                degraded:
+                  summary: Some services failing
+                  value:
+                    status: "degraded"
+                    services:
+                      postgres: true
+                      qdrant: false
+                      openai: true
+                    timestamp: "2025-11-30T12:34:56Z"
+                    version: "1.0.0"
+                unhealthy:
+                  summary: Critical services down
+                  value:
+                    status: "unhealthy"
+                    services:
+                      postgres: false
+                      qdrant: false
+                      openai: false
+                    timestamp: "2025-11-30T12:34:56Z"
+                    version: "1.0.0"
