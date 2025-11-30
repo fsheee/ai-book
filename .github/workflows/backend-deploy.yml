@@ -1,0 +1,29 @@
+# Optional: Automated Railway deployment via GitHub Actions
+# Note: Railway auto-deploys on git push by default, this is for advanced CI/CD
+
+name: Backend Deploy to Railway
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Railway
+        run: echo "Railway auto-deploys on push to main. Manual deployment via Railway CLI if needed."
+        # Uncomment and configure if using Railway CLI:
+        # - name: Install Railway CLI
+        #   run: npm install -g @railway/cli
+        # - name: Deploy
+        #   env:
+        #     RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        #   run: railway up

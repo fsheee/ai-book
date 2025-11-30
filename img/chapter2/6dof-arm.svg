@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400" width="500" height="400">
+  <!-- Title -->
+  <text x="250" y="25" font-family="Arial" font-size="18" font-weight="bold" text-anchor="middle">6-DOF Humanoid Arm with DH Frames</text>
+
+  <!-- Base -->
+  <rect x="230" y="350" width="40" height="30" fill="#555" stroke="#333" stroke-width="2"/>
+  <text x="250" y="395" font-family="Arial" font-size="12" text-anchor="middle">Base</text>
+
+  <!-- Joint 1: Shoulder Yaw (z-axis rotation) -->
+  <circle cx="250" cy="350" r="10" fill="#dc2626" stroke="#991b1b" stroke-width="2"/>
+  <text x="270" y="355" font-family="Arial" font-size="11" fill="#dc2626">θ₁</text>
+
+  <!-- Link 1 (vertical) -->
+  <line x1="250" y1="340" x2="250" y2="300" stroke="#2563eb" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- Joint 2: Shoulder Pitch -->
+  <circle cx="250" cy="300" r="10" fill="#dc2626" stroke="#991b1b" stroke-width="2"/>
+  <text x="270" y="305" font-family="Arial" font-size="11" fill="#dc2626">θ₂</text>
+
+  <!-- Link 2 (angled) -->
+  <line x1="250" y1="290" x2="280" y2="240" stroke="#2563eb" stroke-width="6" stroke-linecap="round"/>
+  <text x="260" y="270" font-family="Arial" font-size="10" fill="#2563eb">a₃</text>
+
+  <!-- Joint 3: Shoulder Roll -->
+  <circle cx="280" cy="240" r="10" fill="#dc2626" stroke="#991b1b" stroke-width="2"/>
+  <text x="300" y="245" font-family="Arial" font-size="11" fill="#dc2626">θ₃</text>
+
+  <!-- Link 3 (upper arm) -->
+  <line x1="285" y1="235" x2="340" y2="180" stroke="#16a34a" stroke-width="6" stroke-linecap="round"/>
+  <text x="310" y="210" font-family="Arial" font-size="10" fill="#16a34a">a₄</text>
+
+  <!-- Joint 4: Elbow -->
+  <circle cx="340" cy="180" r="10" fill="#dc2626" stroke="#991b1b" stroke-width="2"/>
+  <text x="355" y="185" font-family="Arial" font-size="11" fill="#dc2626">θ₄</text>
+
+  <!-- Link 4 (forearm) -->
+  <line x1="345" y1="175" x2="380" y2="120" stroke="#16a34a" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Joint 5: Wrist Pitch -->
+  <circle cx="380" cy="120" r="9" fill="#dc2626" stroke="#991b1b" stroke-width="2"/>
+  <text x="395" y="125" font-family="Arial" font-size="11" fill="#dc2626">θ₅</text>
+
+  <!-- Link 5 (wrist) -->
+  <line x1="383" y1="115" x2="405" y2="85" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
+  <text x="390" y="105" font-family="Arial" font-size="10" fill="#16a34a">d₅</text>
+
+  <!-- Joint 6: Wrist Yaw -->
+  <circle cx="405" cy="85" r="8" fill="#dc2626" stroke="#991b1b" stroke-width="2"/>
+  <text x="418" y="90" font-family="Arial" font-size="11" fill="#dc2626">θ₆</text>
+
+  <!-- End-effector (hand) -->
+  <circle cx="425" cy="70" r="12" fill="#f59e0b" stroke="#d97706" stroke-width="2"/>
+  <text x="410" y="55" font-family="Arial" font-size="12" fill="#f59e0b" font-weight="bold">End-effector</text>
+
+  <!-- Coordinate frames -->
+  <!-- Base frame (Frame 0) -->
+  <g transform="translate(250, 350)">
+    <line x1="0" y1="0" x2="30" y2="0" stroke="#dc2626" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="33" y="4" font-family="Arial" font-size="10" fill="#dc2626">x₀</text>
+    <line x1="0" y1="0" x2="0" y2="-30" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="3" y="-33" font-family="Arial" font-size="10" fill="#16a34a">y₀</text>
+    <circle cx="0" cy="0" r="2" fill="#2563eb"/>
+    <text x="-15" y="-10" font-family="Arial" font-size="9" fill="#2563eb">z₀</text>
+  </g>
+
+  <!-- Frame 3 (Shoulder Roll) -->
+  <g transform="translate(280, 240)">
+    <line x1="0" y1="0" x2="20" y2="0" stroke="#dc2626" stroke-width="1.5" marker-end="url(#arrow-small)"/>
+    <text x="22" y="3" font-family="Arial" font-size="8" fill="#dc2626">x₃</text>
+    <line x1="0" y1="0" x2="0" y2="-20" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arrow-small)"/>
+    <text x="2" y="-22" font-family="Arial" font-size="8" fill="#16a34a">y₃</text>
+  </g>
+
+  <!-- Frame 6 (End-effector) -->
+  <g transform="translate(425, 70)">
+    <line x1="0" y1="0" x2="18" y2="0" stroke="#dc2626" stroke-width="1.5" marker-end="url(#arrow-small)"/>
+    <text x="20" y="3" font-family="Arial" font-size="8" fill="#dc2626">x₆</text>
+    <line x1="0" y1="0" x2="0" y2="-18" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arrow-small)"/>
+    <text x="2" y="-20" font-family="Arial" font-size="8" fill="#16a34a">y₆</text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(20, 50)">
+    <text x="0" y="0" font-family="Arial" font-size="13" font-weight="bold">DH Parameters:</text>
+    <text x="0" y="20" font-family="Arial" font-size="11">• θᵢ: Joint angle (variable)</text>
+    <text x="0" y="38" font-family="Arial" font-size="11">• aᵢ: Link length</text>
+    <text x="0" y="56" font-family="Arial" font-size="11">• αᵢ: Link twist</text>
+    <text x="0" y="74" font-family="Arial" font-size="11">• dᵢ: Link offset</text>
+
+    <text x="0" y="100" font-family="Arial" font-size="13" font-weight="bold">DOF:</text>
+    <text x="0" y="120" font-family="Arial" font-size="11">• Shoulder: 3 (yaw, pitch, roll)</text>
+    <text x="0" y="138" font-family="Arial" font-size="11">• Elbow: 1 (pitch)</text>
+    <text x="0" y="156" font-family="Arial" font-size="11">• Wrist: 2 (pitch, yaw)</text>
+    <text x="0" y="174" font-family="Arial" font-size="11" font-weight="bold">Total: 6 DOF</text>
+  </g>
+
+  <!-- Joint annotation boxes -->
+  <rect x="145" y="345" width="90" height="30" fill="#fee" stroke="#dc2626" stroke-width="1" rx="5"/>
+  <text x="190" y="363" font-family="Arial" font-size="10" text-anchor="middle" fill="#7f1d1d">Shoulder</text>
+
+  <rect x="335" y="165" width="70" height="25" fill="#efe" stroke="#16a34a" stroke-width="1" rx="5"/>
+  <text x="370" y="180" font-family="Arial" font-size="10" text-anchor="middle" fill="#14532d">Elbow</text>
+
+  <rect x="378" y="95" width="60" height="25" fill="#fef3c7" stroke="#f59e0b" stroke-width="1" rx="5"/>
+  <text x="408" y="110" font-family="Arial" font-size="10" text-anchor="middle" fill="#78350f">Wrist</text>
+
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L7,3 z" fill="#666"/>
+    </marker>
+    <marker id="arrow-small" markerWidth="6" markerHeight="6" refX="5" refY="2.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,5 L5,2.5 z" fill="#666"/>
+    </marker>
+  </defs>
+</svg>

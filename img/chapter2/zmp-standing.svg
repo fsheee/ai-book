@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400" width="500" height="400">
+  <!-- Title -->
+  <text x="250" y="25" font-family="Arial" font-size="18" font-weight="bold" text-anchor="middle">Zero Moment Point (ZMP) Analysis</text>
+
+  <!-- Ground -->
+  <line x1="50" y1="350" x2="450" y2="350" stroke="#333" stroke-width="3"/>
+  <pattern id="ground-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+    <line x1="0" y1="20" x2="10" y2="10" stroke="#666" stroke-width="1"/>
+    <line x1="10" y1="20" x2="20" y2="10" stroke="#666" stroke-width="1"/>
+  </pattern>
+  <rect x="50" y="350" width="400" height="30" fill="url(#ground-pattern)"/>
+
+  <!-- Simplified humanoid robot -->
+  <!-- Left foot -->
+  <rect x="180" y="330" width="50" height="20" fill="#555" stroke="#333" stroke-width="2" rx="3"/>
+  <text x="205" y="368" font-family="Arial" font-size="10" text-anchor="middle" fill="#555">Left foot</text>
+
+  <!-- Right foot -->
+  <rect x="270" y="330" width="50" height="20" fill="#555" stroke="#333" stroke-width="2" rx="3"/>
+  <text x="295" y="368" font-family="Arial" font-size="10" text-anchor="middle" fill="#555">Right foot</text>
+
+  <!-- Legs -->
+  <line x1="205" y1="330" x2="240" y2="240" stroke="#2563eb" stroke-width="8" stroke-linecap="round"/>
+  <line x1="295" y1="330" x2="260" y2="240" stroke="#2563eb" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Torso -->
+  <rect x="230" y="160" width="40" height="80" fill="#2563eb" stroke="#1e40af" stroke-width="2" rx="5"/>
+
+  <!-- Head -->
+  <circle cx="250" cy="140" r="20" fill="#2563eb" stroke="#1e40af" stroke-width="2"/>
+
+  <!-- Center of Mass (CoM) -->
+  <circle cx="250" cy="200" r="8" fill="#dc2626" stroke="#991b1b" stroke-width="2"/>
+  <text x="265" y="205" font-family="Arial" font-size="13" fill="#dc2626" font-weight="bold">CoM</text>
+
+  <!-- CoM height -->
+  <line x1="210" y1="200" x2="210" y2="350" stroke="#dc2626" stroke-width="1" stroke-dasharray="5,5"/>
+  <line x1="205" y1="200" x2="215" y2="200" stroke="#dc2626" stroke-width="1"/>
+  <line x1="205" y1="350" x2="215" y2="350" stroke="#dc2626" stroke-width="1"/>
+  <text x="200" y="280" font-family="Arial" font-size="12" fill="#dc2626" text-anchor="end">h</text>
+
+  <!-- Gravity force -->
+  <defs>
+    <marker id="arrowred2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrowgreen2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrowblue2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+
+  <line x1="250" y1="210" x2="250" y2="270" stroke="#dc2626" stroke-width="3" marker-end="url(#arrowred2)"/>
+  <text x="260" y="245" font-family="Arial" font-size="13" fill="#dc2626" font-weight="bold">mg</text>
+
+  <!-- Acceleration vector (optional, if robot accelerating) -->
+  <line x1="250" y1="200" x2="290" y2="200" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrowblue2)"/>
+  <text x="300" y="205" font-family="Arial" font-size="12" fill="#2563eb">ẍ</text>
+
+  <!-- ZMP point -->
+  <circle cx="255" cy="350" r="10" fill="#16a34a" stroke="#15803d" stroke-width="3"/>
+  <text x="255" y="332" font-family="Arial" font-size="14" fill="#16a34a" font-weight="bold" text-anchor="middle">ZMP</text>
+
+  <!-- Support polygon -->
+  <rect x="175" y="355" width="150" height="5" fill="#fef3c7" fill-opacity="0.6" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="180" y="390" font-family="Arial" font-size="11" fill="#f59e0b">Support Polygon</text>
+  <line x1="180" y1="385" x2="180" y2="360" stroke="#f59e0b" stroke-width="2"/>
+  <line x1="320" y1="385" x2="320" y2="360" stroke="#f59e0b" stroke-width="2"/>
+
+  <!-- Annotations -->
+  <line x1="250" y1="205" x2="250" y2="345" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <line x1="255" y1="345" x2="255" y2="200" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3,3"/>
+
+  <!-- Formula box -->
+  <rect x="320" y="60" width="160" height="95" fill="#f0f9ff" stroke="#2563eb" stroke-width="2" rx="5"/>
+  <text x="400" y="80" font-family="Arial" font-size="13" text-anchor="middle" font-weight="bold">ZMP Formula:</text>
+  <text x="400" y="100" font-family="Arial" font-size="12" text-anchor="middle">x<tspan baseline-shift="sub" font-size="10">zmp</tspan> = x<tspan baseline-shift="sub" font-size="10">com</tspan> - (h/g)ẍ<tspan baseline-shift="sub" font-size="10">com</tspan></text>
+  <text x="400" y="122" font-family="Arial" font-size="11" text-anchor="middle" fill="#666">where:</text>
+  <text x="400" y="138" font-family="Arial" font-size="10" text-anchor="middle" fill="#666">h = CoM height</text>
+  <text x="400" y="150" font-family="Arial" font-size="10" text-anchor="middle" fill="#666">g = 9.81 m/s²</text>
+
+  <!-- Stability indicator -->
+  <rect x="320" y="170" width="160" height="50" fill="#d4edda" stroke="#16a34a" stroke-width="2" rx="5"/>
+  <text x="400" y="190" font-family="Arial" font-size="12" text-anchor="middle" font-weight="bold" fill="#155724">✓ STABLE</text>
+  <text x="400" y="208" font-family="Arial" font-size="10" text-anchor="middle" fill="#155724">ZMP inside support</text>
+  <text x="400" y="218" font-family="Arial" font-size="10" text-anchor="middle" fill="#155724">polygon</text>
+
+  <!-- Info box -->
+  <rect x="20" y="60" width="270" height="115" fill="#fff3cd" stroke="#f59e0b" stroke-width="2" rx="5"/>
+  <text x="155" y="80" font-family="Arial" font-size="13" text-anchor="middle" font-weight="bold">Key Concept:</text>
+  <text x="155" y="100" font-family="Arial" font-size="11" text-anchor="middle">The ZMP is the point where the net moment</text>
+  <text x="155" y="115" font-family="Arial" font-size="11" text-anchor="middle">of all forces equals zero. For stability, it</text>
+  <text x="155" y="130" font-family="Arial" font-size="11" text-anchor="middle">must remain inside the support polygon</text>
+  <text x="155" y="145" font-family="Arial" font-size="11" text-anchor="middle">(area between feet). If ZMP reaches the</text>
+  <text x="155" y="160" font-family="Arial" font-size="11" text-anchor="middle">edge, the robot will tip over.</text>
+</svg>
