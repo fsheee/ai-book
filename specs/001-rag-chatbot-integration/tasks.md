@@ -186,18 +186,18 @@ Per plan.md, this is a **web application** with:
 
 ### Full-Page Chat Mode
 
-- [ ] T046 [P] [US3] Implement frontend/src/pages/chat/index.jsx: Full-page chat component (full-screen layout, no floating button, direct integration of ChatPanel, URL route /chat)
-- [ ] T047 [US3] Add expand button to ChatPanel in frontend/src/components/RagChatWidget/ChatPanel.jsx (navigate to /chat route when clicked)
-- [ ] T048 [US3] Add minimize/collapse functionality to ChatPanel in frontend/src/components/RagChatWidget/ChatPanel.jsx (close panel, show floating button again)
+- [x] T046 [P] [US3] Implement frontend/src/pages/chat/index.jsx: Full-page chat component (full-screen layout, no floating button, direct integration of ChatPanel, URL route /chat)
+- [x] T047 [US3] Add expand button to ChatPanel in frontend/src/components/RagChatWidget/ChatPanel.jsx (navigate to /chat route when clicked)
+- [x] T048 [US3] Add minimize/collapse functionality to ChatPanel in frontend/src/components/RagChatWidget/ChatPanel.jsx (close panel, show floating button again)
 
 ### Mobile Optimization
 
-- [ ] T049 [US3] Update frontend/static/css/chatbot.css: Mobile responsive styles (panel takes full width on mobile, floating button positioning, touch-friendly button sizes, handle virtual keyboard)
+- [x] T049 [US3] Update frontend/static/css/chatbot.css: Mobile responsive styles (panel takes full width on mobile, floating button positioning, touch-friendly button sizes, handle virtual keyboard)
 
 ### UI Polish
 
-- [ ] T050 [P] [US3] Add loading state animations to ChatPanel in frontend/src/components/RagChatWidget/ChatPanel.jsx (skeleton loader, typing indicator, spinner for initial load)
-- [ ] T051 [P] [US3] Implement error messages for edge cases in ChatPanel (empty message validation: "Please enter a question", rate limit error: "Too many requests, try again in X seconds", service unavailable: "Chatbot temporarily unavailable")
+- [x] T050 [P] [US3] Add loading state animations to ChatPanel in frontend/src/components/RagChatWidget/ChatPanel.jsx (skeleton loader, typing indicator, spinner for initial load)
+- [x] T051 [P] [US3] Implement error messages for edge cases in ChatPanel (empty message validation: "Please enter a question", rate limit error: "Too many requests, try again in X seconds", service unavailable: "Chatbot temporarily unavailable")
 
 **US3 Checkpoint**: Full-page chat mode works at /chat route, mobile users can use chatbot seamlessly, loading states and error messages are clear and helpful.
 
@@ -213,7 +213,7 @@ Per plan.md, this is a **web application** with:
 
 ### Backend Implementation for US2
 
-- [ ] T052 [US2] Implement POST /rag/from-selection endpoint in backend/src/api/routes/rag.py (1. Validate request (selected_text length 50-8000 chars), 2. Construct prompt with selected_text as context (no vector search), 3. Generate response via LLM, 4. Save to Postgres with query_type='selection', 5. Return ChatResponse with empty sources array)
+- [x] T052 [US2] Implement POST /rag/from-selection endpoint in backend/src/api/routes/rag.py (1. Validate request (selected_text length 50-8000 chars), 2. Construct prompt with selected_text as context (no vector search), 3. Generate response via LLM, 4. Save to Postgres with query_type='selection', 5. Return ChatResponse with empty sources array)
 
 **Backend Checkpoint US2**: Backend can answer questions using only selected text, no vector search performed, proper validation of text length.
 
@@ -221,20 +221,20 @@ Per plan.md, this is a **web application** with:
 
 #### Text Selection Detection
 
-- [ ] T053 [P] [US2] Implement frontend/src/hooks/useTextSelection.js: Text selection detection hook (detect window.getSelection(), return selected text and position)
+- [x] T053 [P] [US2] Implement frontend/src/hooks/useTextSelection.js: Text selection detection hook (detect window.getSelection(), return selected text and position)
 
 #### Context Menu Component
 
-- [ ] T054 [US2] Implement frontend/src/components/TextSelectionMenu/index.jsx: Context menu component for selected text (show "Ask from Selection" button on text selection, position near selection, pass selected text to chat widget)
+- [x] T054 [US2] Implement frontend/src/components/TextSelectionMenu/index.jsx: Context menu component for selected text (show "Ask from Selection" button on text selection, position near selection, pass selected text to chat widget)
 
 #### Chat Widget Integration
 
-- [ ] T055 [US2] Update frontend/src/components/RagChatWidget/index.jsx: Add selection mode support (accept selected_text prop, call queryFromSelection() instead of query(), indicate "Context: Selected Text" in UI, show validation message if text too short <50 chars)
-- [ ] T056 [US2] Integrate TextSelectionMenu with RagChatWidget in frontend/plugins/rag-chatbot-plugin/index.js (listen for text selection events, show context menu, wire to chat widget)
+- [x] T055 [US2] Update frontend/src/components/RagChatWidget/index.jsx: Add selection mode support (accept selected_text prop, call queryFromSelection() instead of query(), indicate "Context: Selected Text" in UI, show validation message if text too short <50 chars)
+- [x] T056 [US2] Integrate TextSelectionMenu with RagChatWidget in frontend/plugins/rag-chatbot-plugin/index.js (listen for text selection events, show context menu, wire to chat widget)
 
 #### API Client Update
 
-- [ ] T057 [US2] Add queryFromSelection() and streamFromSelection() methods to frontend/src/utils/api.js: RagChatbotAPI class (implement per frontend-api.ts spec, handle SelectionQueryRequest validation)
+- [x] T057 [US2] Add queryFromSelection() and streamFromSelection() methods to frontend/src/utils/api.js: RagChatbotAPI class (implement per frontend-api.ts spec, handle SelectionQueryRequest validation)
 
 **US2 Checkpoint**: Students can select text, see "Ask from Selection" option, ask questions, receive answers based only on selected text (no external sources).
 
@@ -250,19 +250,19 @@ Per plan.md, this is a **web application** with:
 
 ### Backend Performance
 
-- [ ] T058 [US5] Add performance monitoring to backend/src/api/routes/rag.py: Log latency breakdown (embedding_ms, vector_search_ms, llm_generation_ms, total_latency_ms), store in usage_logs table
-- [ ] T059 [P] [US5] Optimize embedding generation in backend/src/services/embedding.py: Implement batch embedding for multiple chunks (up to 2048 per API call)
-- [ ] T060 [P] [US5] Optimize Qdrant search in backend/src/services/vectorstore.py: Use score_threshold in search query, configure HNSW ef parameter for search speed vs accuracy tradeoff
+- [x] T058 [US5] Add performance monitoring to backend/src/api/routes/rag.py: Log latency breakdown (embedding_ms, vector_search_ms, llm_generation_ms, total_latency_ms), store in usage_logs table
+- [x] T059 [P] [US5] Optimize embedding generation in backend/src/services/embedding.py: Implement batch embedding for multiple chunks (up to 2048 per API call)
+- [x] T060 [P] [US5] Optimize Qdrant search in backend/src/services/vectorstore.py: Use score_threshold in search query, configure HNSW ef parameter for search speed vs accuracy tradeoff
 
 ### Frontend Performance
 
-- [ ] T061 [US5] Add loading indicators to ChatPanel in frontend/src/components/RagChatWidget/ChatPanel.jsx: (1) Show spinner when sending query, (2) Show "typing..." indicator during SSE streaming, (3) Display "Searching..." → "Generating..." states, (4) Show estimated time if >2s
-- [ ] T062 [P] [US5] Implement debouncing for rapid queries in ChatInput in frontend/src/components/RagChatWidget/ChatInput.jsx (prevent spamming send button, disable during processing)
+- [x] T061 [US5] Add loading indicators to ChatPanel in frontend/src/components/RagChatWidget/ChatPanel.jsx: (1) Show spinner when sending query, (2) Show "typing..." indicator during SSE streaming, (3) Display "Searching..." → "Generating..." states, (4) Show estimated time if >2s
+- [x] T062 [P] [US5] Implement debouncing for rapid queries in ChatInput in frontend/src/components/RagChatWidget/ChatInput.jsx (prevent spamming send button, disable during processing)
 
 ### Performance Validation
 
-- [ ] T063 [US5] Create backend/scripts/benchmark_performance.py: Performance testing script (send 100 sample queries, measure latency, report p50/p95/p99, identify slow queries)
-- [ ] T064 [US5] Run performance validation per quickstart.md: Execute benchmark script, verify 95% queries <2.5s, identify and optimize bottlenecks if needed
+- [x] T063 [US5] Create backend/scripts/benchmark_performance.py: Performance testing script (send 100 sample queries, measure latency, report p50/p95/p99, identify slow queries)
+- [x] T064 [US5] Run performance validation per quickstart.md: Execute benchmark script, verify 95% queries <2.5s, identify and optimize bottlenecks if needed
 
 **US5 Checkpoint**: Chatbot responds within latency requirements, loading states are clear, performance metrics are tracked in database for monitoring.
 
@@ -278,8 +278,8 @@ Per plan.md, this is a **web application** with:
 
 ### Backend Implementation for US4
 
-- [ ] T065 [US4] Add GET /history endpoint to backend/src/api/routes/rag.py: Retrieve user's chat history (query chats table by user_id, order by created_at DESC, limit 50, return list of ChatResponse objects)
-- [ ] T066 [P] [US4] Implement data retention cleanup in backend/scripts/cleanup_old_chats.py: Delete chats older than 30 days (run via cron or scheduled task)
+- [x] T065 [US4] Add GET /history endpoint to backend/src/api/routes/rag.py: Retrieve user's chat history (query chats table by user_id, order by created_at DESC, limit 50, return list of ChatResponse objects)
+- [x] T066 [P] [US4] Implement data retention cleanup in backend/scripts/cleanup_old_chats.py: Delete chats older than 30 days (run via cron or scheduled task)
 
 ### Frontend Implementation for US4
 
@@ -303,18 +303,18 @@ Per plan.md, this is a **web application** with:
 
 ### Ingestion Endpoint
 
-- [ ] T071 [P] Implement POST /embed-book endpoint in backend/src/api/routes/ingest.py (1. Validate content_dir path, 2. Call ingestion service, 3. Return IngestResponse with stats: chunks_created, files_processed, files_skipped, errors)
+- [x] T071 [P] Implement POST /embed-book endpoint in backend/src/api/routes/ingest.py (1. Validate content_dir path, 2. Call ingestion service, 3. Return IngestResponse with stats: chunks_created, files_processed, files_skipped, errors)
 
 ### Ingestion Service Enhancement
 
-- [ ] T072 Add progress tracking to backend/src/services/ingestion.py: Implement progress callback (report files processed, chunks created, ETA)
-- [ ] T073 [P] Add content hash checking to backend/src/services/ingestion.py: Skip files with unchanged content_hash (MD5), only re-ingest modified files
-- [ ] T074 [P] Add error handling to backend/src/services/ingestion.py: Catch and log errors per file (invalid frontmatter, parsing errors), continue with remaining files, return partial success with errors list
+- [x] T072 Add progress tracking to backend/src/services/ingestion.py: Implement progress callback (report files processed, chunks created, ETA)
+- [x] T073 [P] Add content hash checking to backend/src/services/ingestion.py: Skip files with unchanged content_hash (MD5), only re-ingest modified files
+- [x] T074 [P] Add error handling to backend/src/services/ingestion.py: Catch and log errors per file (invalid frontmatter, parsing errors), continue with remaining files, return partial success with errors list
 
 ### Content Management
 
-- [ ] T075 [P] Create backend/scripts/clear_collection.py: Utility script to clear Qdrant collection (delete all chunks, useful for re-ingestion)
-- [ ] T076 [P] Update backend/README.md: Document ingestion process (when to run, how to run, expected output, troubleshooting)
+- [x] T075 [P] Create backend/scripts/clear_collection.py: Utility script to clear Qdrant collection (delete all chunks, useful for re-ingestion)
+- [x] T076 [P] Update backend/README.md: Document ingestion process (when to run, how to run, expected output, troubleshooting)
 
 **Checkpoint**: Admin can ingest textbook content via script or endpoint, monitor progress, handle errors gracefully, re-ingest only changed files.
 
@@ -359,14 +359,14 @@ Per plan.md, this is a **web application** with:
 
 ### Architectural Decision Records (ADRs)
 
-- [ ] T090 [P] Create ADR-001 in history/adrs/001-chunking-strategy.md: Document chunking parameters decision (1200/200) with rationale from research.md
-- [ ] T091 [P] Create ADR-002 in history/adrs/002-embedding-model.md: Document text-embedding-3-small selection with cost/performance tradeoff from research.md
-- [ ] T092 [P] Create ADR-003 in history/adrs/003-llm-model.md: Document GPT-4.1-mini selection with latency requirements from research.md
-- [ ] T093 [P] Create ADR-004 in history/adrs/004-rate-limiting.md: Document rate limiting thresholds (10/min, 100/hr) with rationale from research.md
-- [ ] T094 [P] Create ADR-005 in history/adrs/005-authentication.md: Document header-based API key auth mechanism from research.md
-- [ ] T095 [P] Create ADR-006 in history/adrs/006-chat-history-storage.md: Document hybrid LocalStorage + Postgres approach from research.md
-- [ ] T096 [P] Create ADR-007 in history/adrs/007-streaming.md: Document SSE (Server-Sent Events) choice over WebSocket from research.md
-- [ ] T097 [P] Create ADR-008 in history/adrs/008-deployment.md: Document Railway platform selection from research.md
+- [x] T090 [P] Create ADR-001 in history/adrs/001-chunking-strategy.md: Document chunking parameters decision (1200/200) with rationale from research.md
+- [x] T091 [P] Create ADR-002 in history/adrs/002-embedding-model.md: Document text-embedding-3-small selection with cost/performance tradeoff from research.md
+- [x] T092 [P] Create ADR-003 in history/adrs/003-llm-model.md: Document GPT-4.1-mini selection with latency requirements from research.md
+- [x] T093 [P] Create ADR-004 in history/adrs/004-rate-limiting.md: Document rate limiting thresholds (10/min, 100/hr) with rationale from research.md
+- [x] T094 [P] Create ADR-005 in history/adrs/005-authentication.md: Document header-based API key auth mechanism from research.md
+- [x] T095 [P] Create ADR-006 in history/adrs/006-chat-history-storage.md: Document hybrid LocalStorage + Postgres approach from research.md
+- [x] T096 [P] Create ADR-007 in history/adrs/007-streaming.md: Document SSE (Server-Sent Events) choice over WebSocket from research.md
+- [x] T097 [P] Create ADR-008 in history/adrs/008-deployment.md: Document Railway platform selection from research.md
 
 ### Documentation Updates
 

@@ -121,10 +121,11 @@ async def root():
 
 
 # Import and register route modules
-from src.api.routes import rag, health
+from src.api.routes import rag, health, ingest
 
 app.include_router(rag.router)
 app.include_router(health.router)
+app.include_router(ingest.router)
 
 
 if __name__ == "__main__":

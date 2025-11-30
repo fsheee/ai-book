@@ -49,19 +49,28 @@ async def _perform_rag_query(
         Tuple of (answer, retrieved_chunks, usage, latency_ms)
     """
     start_time = time.time()
+    performance_metrics = {}
 
     try:
         # 1. Generate query embedding
         logger.info(f"Generating embedding for query: {question[:50]}...")
+        embedding_start = time.time()
         query_vector = await embedding_service.embed_text(question)
+        embedding_ms = (time.time() - embedding_start) * 1000
+        performance_metrics['embedding_ms'] = embedding_ms
+        logger.info(f"Embedding generation took {embedding_ms:.2f}ms")
 
         # 2. Search Qdrant for relevant chunks
         logger.info(f"Searching vector store (top_k={settings.top_k})...")
+        search_start = time.time()
         retrieved_docs = await vectorstore_service.search(
             query_vector=query_vector,
             limit=settings.top_k,
             score_threshold=settings.similarity_threshold
         )
+        vector_search_ms = (time.time() - search_start) * 1000
+        performance_metrics['vector_search_ms'] = vector_search_ms
+        logger.info(f"Vector search took {vector_search_ms:.2f}ms")
 
         if not retrieved_docs:
             logger.warning("No relevant chunks found above similarity threshold")
@@ -100,17 +109,28 @@ async def _perform_rag_query(
 
         # 4. Generate LLM response
         logger.info("Generating LLM response...")
+        llm_start = time.time()
         result = await llm_service.generate_answer(
             question=question,
             context_chunks=context_chunks if context_chunks else None,
             chat_history=chat_history if chat_history else None
         )
+        llm_generation_ms = (time.time() - llm_start) * 1000
+        performance_metrics['llm_generation_ms'] = llm_generation_ms
+        logger.info(f"LLM generation took {llm_generation_ms:.2f}ms")
 
         answer = result['answer']
         usage = result['usage']
 
         # 5. Save to database
         latency_ms = (time.time() - start_time) * 1000
+        performance_metrics['total_latency_ms'] = latency_ms
+
+        # Log performance breakdown
+        logger.info(f"Performance breakdown - Embedding: {embedding_ms:.2f}ms, "
+                   f"Vector search: {vector_search_ms:.2f}ms, "
+                   f"LLM generation: {llm_generation_ms:.2f}ms, "
+                   f"Total: {latency_ms:.2f}ms")
 
         try:
             # Save user message
@@ -457,3 +477,56 @@ async def _stream_selection_query(
         logger.error(f"Streaming selection query failed: {e}")
         error_event = RagStreamChunk(type="error", content=str(e))
         yield f"data: {error_event.json()}\n\n"
+
+
+@router.get("/history")
+@limiter.limit(get_rate_limit_string())
+async def get_chat_history(
+    chat_id: str,
+    max_messages: int = 50,
+    request: Request = None,
+    api_key: str = Depends(api_key_auth)
+):
+    """
+    Retrieve chat history for a given chat_id.
+
+    Returns the most recent messages in chronological order (oldest first).
+
+    Args:
+        chat_id: Chat session identifier
+        max_messages: Maximum number of messages to return (default: 50, max: 100)
+
+    Returns:
+        List of chat messages with metadata
+    """
+    try:
+        # Validate max_messages
+        max_messages = min(max_messages, 100)
+
+        # Get messages from database
+        messages = await database_service.get_chat_history(
+            chat_id=chat_id,
+            max_messages=max_messages
+        )
+
+        # Format response
+        formatted_messages = []
+        for msg in messages:
+            formatted_msg = {
+                "id": msg.id,
+                "role": msg.role,
+                "content": msg.content,
+                "created_at": msg.created_at.isoformat() if hasattr(msg, 'created_at') else None,
+                "retrieved_chunks": msg.retrieved_chunks if hasattr(msg, 'retrieved_chunks') else None,
+            }
+            formatted_messages.append(formatted_msg)
+
+        return {
+            "chat_id": chat_id,
+            "messages": formatted_messages,
+            "total": len(formatted_messages),
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to retrieve chat history: {e}")
+        raise
