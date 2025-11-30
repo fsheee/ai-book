@@ -72,6 +72,49 @@
 }
 
 /* ============================================================================
+   Text Selection Highlighting
+   ============================================================================ */
+
+/* Custom text selection highlighting for better visibility */
+::selection {
+  background-color: rgba(37, 99, 235, 0.3); /* Primary blue with transparency */
+  color: inherit;
+}
+
+::-moz-selection {
+  background-color: rgba(37, 99, 235, 0.3);
+  color: inherit;
+}
+
+/* Enhanced selection highlighting in main content area */
+main ::selection,
+article ::selection,
+.markdown ::selection,
+.docusaurus-content ::selection {
+  background-color: rgba(37, 99, 235, 0.4); /* Slightly stronger in content */
+  color: inherit;
+}
+
+main ::-moz-selection,
+article ::-moz-selection,
+.markdown ::-moz-selection,
+.docusaurus-content ::-moz-selection {
+  background-color: rgba(37, 99, 235, 0.4);
+  color: inherit;
+}
+
+/* Dark mode selection */
+[data-theme='dark'] ::selection {
+  background-color: rgba(96, 165, 250, 0.3); /* Lighter blue for dark mode */
+  color: inherit;
+}
+
+[data-theme='dark'] ::-moz-selection {
+  background-color: rgba(96, 165, 250, 0.3);
+  color: inherit;
+}
+
+/* ============================================================================
    Floating Button
    ============================================================================ */
 
