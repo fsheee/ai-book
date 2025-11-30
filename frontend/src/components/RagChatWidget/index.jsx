@@ -351,6 +351,8 @@ export function RagChatWidget({
           title={selectedText ? 'Ask About Selection' : 'AI Assistant'}
           mode={isFullPage ? 'fullpage' : 'floating'}
           showExpandButton={!isFullPage}
+          selectedText={selectedText}
+          onClearSelection={onSelectionQueryComplete}
         />
       )}
     </>

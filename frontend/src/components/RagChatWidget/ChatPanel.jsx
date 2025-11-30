@@ -28,6 +28,8 @@ import ChatInput from './ChatInput';
  * @param {boolean} [props.showExpandButton] - Show expand to full page button (default: true)
  * @param {Function} [props.onExpand] - Callback when expand button clicked
  * @param {string} [props.mode] - Display mode: 'floating' or 'fullpage' (default: 'floating')
+ * @param {string} [props.selectedText] - User-selected text for context display
+ * @param {Function} [props.onClearSelection] - Callback to clear selected text
  */
 export function ChatPanel({
   messages = [],
@@ -45,6 +47,8 @@ export function ChatPanel({
   showExpandButton = true,
   onExpand,
   mode = 'floating',
+  selectedText = null,
+  onClearSelection,
 }) {
   const messagesEndRef = useRef(null);
   const messageListRef = useRef(null);
@@ -164,6 +168,36 @@ export function ChatPanel({
                 )}
               </button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Selected Text Context Banner */}
+      {selectedText && (
+        <div className="chat-panel__context-banner">
+          <div className="chat-panel__context-header">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M2 4h12v1H2V4zm0 3h12v1H2V7zm0 3h8v1H2v-1z" />
+            </svg>
+            <span className="chat-panel__context-label">Context: Selected Text</span>
+            {onClearSelection && (
+              <button
+                className="chat-panel__context-close"
+                onClick={onClearSelection}
+                title="Clear selection"
+                aria-label="Clear selected text"
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+                  <path d="M10 4L4 10M4 4l6 6" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                </svg>
+              </button>
+            )}
+          </div>
+          <div className="chat-panel__context-text">
+            {selectedText.length > 200 ? `${selectedText.substring(0, 200)}...` : selectedText}
+          </div>
+          <div className="chat-panel__context-info">
+            {selectedText.split(/\s+/).filter(Boolean).length} words · {selectedText.length} characters
           </div>
         </div>
       )}
