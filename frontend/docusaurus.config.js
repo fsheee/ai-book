@@ -90,7 +90,7 @@ const config = {
         title: 'Physical AI & Humanoid Robotics',
         logo: {
           alt: 'Physical AI Logo',
-          src: 'frontend/static/img/phycial_ai_logo.jpg',
+          src: 'img/physical_ai_logo.jpg',  // Docusaurus resolves from static/ directory
         },
         items: [
           {
