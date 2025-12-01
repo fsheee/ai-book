@@ -2,20 +2,47 @@
 
 **Project**: Physical AI & Humanoid Robotics Textbook
 
+## Recent Feature: Landing Page Personalization (2025-12-01)
+
+**Feature**: Integrated authentication UI and personalized dashboard into landing page
+
+**Implementation**:
+- **AuthContext** with login/signup/logout (mock implementation using localStorage)
+- **LoginForm & SignupForm** components with validation (email format, password strength)
+- **AuthModal** with smooth animations and backdrop
+- **Dashboard** with 3 personalized cards: Reading Progress, Recommendations, Recent Chats
+- **Conditional Rendering**: Unauthenticated users see generic landing page, authenticated users see personalized dashboard
+- **Loading Skeletons**: Shimmer animation while dashboard data loads
+- **Responsive Design**: Mobile-optimized layouts for all components
+
+**Files Created** (10):
+- `frontend/src/context/AuthContext.jsx` - Global auth state management
+- `frontend/src/hooks/useAuth.js` - Auth hook
+- `frontend/src/utils/auth.js` - JWT token utilities, validation functions
+- `frontend/src/components/Auth/{LoginForm,SignupForm,AuthModal}.jsx`
+- `frontend/src/components/Auth/Auth.module.css`
+- `frontend/src/components/Dashboard/Dashboard.jsx`
+- `frontend/src/components/Dashboard/Dashboard.module.css`
+
+**Files Modified**:
+- `frontend/src/pages/index.js` - Wrapped with AuthProvider, conditional rendering
+
+**User Experience**:
+1. Unauthenticated: See "Login / Sign Up" button → Click → Modal opens → Enter credentials → Dashboard
+2. Authenticated: Automatic dashboard display with personalized content → Logout button returns to generic page
+3. State persists across page reloads via localStorage
+
+**Status**: ✅ Frontend complete with mock data. Ready for backend API integration (POST /auth/login, /auth/register, GET /dashboard)
+
+**Next Steps**: Integrate real backend APIs to replace mock localStorage implementation
+
+---
+
 ## Recent Fix: Landing Page Cards (2025-12-01)
 
 **Issue**: Feature cards on landing page displayed correctly in local development but not on GitHub Pages.
 
-**Root Cause**: Inline JSX styles with CSS custom properties (`var(--ifm-card-background-color)`, etc.) were not resolved during Docusaurus production build optimization.
-
-**Solution**: Refactored to CSS modules
-- Created styles in `frontend/src/pages/index.module.css`
-- Replaced all inline styles with CSS module classes
-- Ensured CSS custom properties are processed through Docusaurus CSS pipeline
-
-**Files Modified**:
-- `frontend/src/pages/index.js` - Refactored Features section JSX
-- `frontend/src/pages/index.module.css` - Added feature card styles
+**Solution**: Refactored inline styles to CSS modules
 
 **Result**: ✅ Landing page cards now display correctly on both local and GitHub Pages deployments
 

@@ -200,3 +200,25 @@
     font-size: 1.1rem;
   }
 }
+
+/* Loading Skeleton */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--ifm-color-emphasis-200) 25%,
+    var(--ifm-color-emphasis-300) 50%,
+    var(--ifm-color-emphasis-200) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

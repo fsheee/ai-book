@@ -1,7 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './Dashboard.module.css';
 
+function DashboardSkeleton() {
+  return (
+    <div className={styles.dashboard}>
+      <div className="container">
+        <div className={styles.welcomeHeader}>
+          <div className={styles.skeleton} style={{height: '2.5rem', width: '60%', margin: '0 auto 0.5rem'}}></div>
+          <div className={styles.skeleton} style={{height: '1.5rem', width: '40%', margin: '0 auto'}}></div>
+        </div>
+        <div className={styles.dashboardGrid}>
+          {[1, 2, 3].map((i) => (
+            <div key={i} className={styles.card}>
+              <div className={styles.skeleton} style={{height: '1.5rem', width: '50%', marginBottom: '1.5rem'}}></div>
+              <div className={styles.skeleton} style={{height: '4rem', marginBottom: '1rem'}}></div>
+              <div className={styles.skeleton} style={{height: '4rem', marginBottom: '1rem'}}></div>
+              <div className={styles.skeleton} style={{height: '4rem'}}></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard({ user }) {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate API call delay
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Mock dashboard data (TODO: Replace with API call)
   const mockData = {
     progress: [
@@ -20,6 +51,10 @@ export default function Dashboard({ user }) {
       { question: 'How do I set up Gazebo?', timestamp: '2 days ago' },
     ],
   };
+
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className={styles.dashboard}>
