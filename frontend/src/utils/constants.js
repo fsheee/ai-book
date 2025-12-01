@@ -10,7 +10,7 @@ export const API_BASE_URL =
 export const API_KEY =
   process.env.NODE_ENV === 'production'
     ? 'your-production-api-key'  // Update with your production API key
-    : 'your-secret-api-key-here-generate-random-string';  // Match backend .env API_KEY
+    : '07e339848352f49f537f8cf57e6ddd480393476d0739f6818267929c5b44384f';  // Match backend .env API_KEY
 
 /**
  * Rate limiting configuration (should match backend)

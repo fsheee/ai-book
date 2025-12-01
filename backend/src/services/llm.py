@@ -28,37 +28,50 @@ class LLMService:
 
         Args:
             question: User's question
-            context_chunks: Retrieved document chunks
+            context_chunks: Retrieved document chunks (can be empty list)
             chat_history: Optional chat history for context
 
         Returns:
             List of message dictionaries for OpenAI API
         """
-        # Build context from retrieved chunks
-        context_text = "\n\n".join([
-            f"[Source {i+1}] {chunk['text']}"
-            for i, chunk in enumerate(context_chunks)
-        ])
+        # Check if we have context
+        if not context_chunks:
+            # No relevant context found - general chat mode
+            system_message = {
+                "role": "system",
+                "content": (
+                    "You are an expert AI assistant for the 'Physical AI & Humanoid Robotics' textbook. "
+                    "No relevant context was found in the textbook for this question. "
+                    "You can provide a general answer based on your knowledge, but mention that this specific information "
+                    "wasn't found in the textbook and may not be covered in the book."
+                )
+            }
+            messages = [system_message]
+        else:
+            # Build context from retrieved chunks
+            context_text = "\n\n".join([
+                f"[Source {i+1}] {chunk['text']}"
+                for i, chunk in enumerate(context_chunks)
+            ])
 
-        # System message
-        system_message = {
-            "role": "system",
-            "content": (
-                "You are an expert AI assistant for the 'Physical AI & Humanoid Robotics' textbook. "
-                "Your task is to answer questions based ONLY on the provided context from the book. "
-                "If the answer cannot be found in the context, say 'I cannot find this information in the provided context.' "
-                "Be concise, accurate, and cite source numbers when possible (e.g., 'According to Source 1...')."
-            )
-        }
+            # System message
+            system_message = {
+                "role": "system",
+                "content": (
+                    "You are an expert AI assistant for the 'Physical AI & Humanoid Robotics' textbook. "
+                    "Your task is to answer questions based ONLY on the provided context from the book. "
+                    "If the answer cannot be found in the context, say 'I cannot find this information in the provided context.' "
+                    "Be concise, accurate, and cite source numbers when possible (e.g., 'According to Source 1...')."
+                )
+            }
 
-        # Context message
-        context_message = {
-            "role": "user",
-            "content": f"Context from textbook:\n\n{context_text}"
-        }
+            # Context message
+            context_message = {
+                "role": "user",
+                "content": f"Context from textbook:\n\n{context_text}"
+            }
 
-        # Build messages list
-        messages = [system_message, context_message]
+            messages = [system_message, context_message]
 
         # Add chat history if provided
         if chat_history:
@@ -146,9 +159,9 @@ class LLMService:
         """
         try:
             # Build prompt based on query type
-            if context_chunks and selected_text:
+            if context_chunks is not None and selected_text:
                 raise ValueError("Provide either context_chunks or selected_text, not both")
-            elif context_chunks:
+            elif context_chunks is not None:  # Explicitly check for None (empty list is valid)
                 messages = self._build_rag_prompt(question, context_chunks, chat_history)
             elif selected_text:
                 messages = self._build_selection_prompt(question, selected_text, chat_history)
@@ -209,9 +222,9 @@ class LLMService:
         """
         try:
             # Build prompt based on query type
-            if context_chunks and selected_text:
+            if context_chunks is not None and selected_text:
                 raise ValueError("Provide either context_chunks or selected_text, not both")
-            elif context_chunks:
+            elif context_chunks is not None:  # Explicitly check for None (empty list is valid)
                 messages = self._build_rag_prompt(question, context_chunks, chat_history)
             elif selected_text:
                 messages = self._build_selection_prompt(question, selected_text, chat_history)

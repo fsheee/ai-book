@@ -1,0 +1,1482 @@
+openapi: 3.0.3
+info:
+  title: AI Textbook Personalization API
+  description: |
+    RESTful API for user authentication, reading progress tracking, personalized recommendations,
+    bookmarks, highlights, and adaptive chatbot responses.
+
+    **Authentication**: JWT tokens stored in httpOnly cookies
+    - Access token: 15 minutes expiry
+    - Refresh token: 7 days expiry
+
+    **Base URL**: https://api.yourdomain.com
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@yourdomain.com
+
+servers:
+  - url: https://api.yourdomain.com
+    description: Production server
+  - url: http://localhost:8000
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: User registration, login, logout, token refresh
+  - name: User
+    description: User profile and preferences management
+  - name: Progress
+    description: Reading progress tracking
+  - name: Recommendations
+    description: Personalized chapter recommendations
+  - name: Bookmarks
+    description: Bookmark management
+  - name: Highlights
+    description: Text highlight management
+  - name: Chat
+    description: Chat history and search
+  - name: Dashboard
+    description: Personalized dashboard data
+
+security:
+  - cookieAuth: []
+
+paths:
+  # ==================== AUTHENTICATION ====================
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register new user account
+      description: |
+        Create a new user account with email and password.
+        Password requirements:
+        - Minimum 8 characters
+        - At least one uppercase letter
+        - At least one lowercase letter
+        - At least one digit
+        - At least one special character (!@#$%^&*(),.?":{}|<>)
+      operationId: registerUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login user
+      description: Authenticate user and set JWT tokens in httpOnly cookies
+      operationId: loginUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Set-Cookie:
+              description: JWT tokens set in httpOnly cookies
+              schema:
+                type: string
+                example: access_token=eyJ...; HttpOnly; Secure; SameSite=Strict; Max-Age=900
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          description: Too many login attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      summary: Logout user
+      description: Invalidate all user tokens by incrementing token_version
+      operationId: logoutUser
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logged out successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      tags: [Authentication]
+      summary: Refresh access token
+      description: Use refresh token to obtain new access and refresh tokens
+      operationId: refreshToken
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Tokens refreshed successfully
+          headers:
+            Set-Cookie:
+              description: New JWT tokens
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Tokens refreshed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/reset-password:
+    post:
+      tags: [Authentication]
+      summary: Request password reset
+      description: Send password reset email with token
+      operationId: requestPasswordReset
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+      responses:
+        '200':
+          description: Password reset email sent (always returns 200 for security)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: If email exists, password reset link has been sent
+
+  /auth/reset-password/confirm:
+    post:
+      tags: [Authentication]
+      summary: Confirm password reset
+      description: Reset password using token from email
+      operationId: confirmPasswordReset
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reset_token
+                - new_password
+              properties:
+                reset_token:
+                  type: string
+                  example: 64-character-hex-string
+                new_password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: NewP@ssw0rd!
+      responses:
+        '200':
+          description: Password reset successful
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Invalid or expired reset token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/me:
+    get:
+      tags: [Authentication]
+      summary: Get current user info
+      description: Returns authenticated user information
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: User information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ==================== USER ====================
+  /user/profile:
+    get:
+      tags: [User]
+      summary: Get user profile
+      operationId: getUserProfile
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    patch:
+      tags: [User]
+      summary: Update user profile
+      description: Update user difficulty level or email
+      operationId: updateUserProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                difficulty_level:
+                  type: string
+                  enum: [beginner, intermediate, advanced]
+                  example: intermediate
+                email:
+                  type: string
+                  format: email
+                  example: newemail@example.com
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /user/preferences:
+    get:
+      tags: [User]
+      summary: Get user preferences
+      operationId: getUserPreferences
+      responses:
+        '200':
+          description: User preferences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferences'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    patch:
+      tags: [User]
+      summary: Update user preferences
+      operationId: updateUserPreferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPreferencesUpdate'
+      responses:
+        '200':
+          description: Preferences updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferences'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /user/account:
+    delete:
+      tags: [User]
+      summary: Delete user account
+      description: |
+        Permanently delete user account and all associated data.
+        GDPR compliance: 24-hour grace period before permanent deletion.
+      operationId: deleteUserAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+                - confirmation
+              properties:
+                password:
+                  type: string
+                  format: password
+                  description: Current password for verification
+                confirmation:
+                  type: string
+                  example: DELETE
+                  description: Must be exactly "DELETE" to confirm
+      responses:
+        '200':
+          description: Account deletion scheduled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Account will be deleted within 24 hours
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Invalid password or confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ==================== PROGRESS ====================
+  /progress/save:
+    post:
+      tags: [Progress]
+      summary: Save reading progress
+      description: Save or update reading progress for a chapter
+      operationId: saveProgress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProgressUpdate'
+      responses:
+        '200':
+          description: Progress saved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: saved
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /progress/{chapter_id}:
+    get:
+      tags: [Progress]
+      summary: Get progress for specific chapter
+      operationId: getChapterProgress
+      parameters:
+        - name: chapter_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: chapter-1-introduction
+      responses:
+        '200':
+          description: Chapter progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Progress'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /progress/all:
+    get:
+      tags: [Progress]
+      summary: Get all user progress
+      operationId: getAllProgress
+      responses:
+        '200':
+          description: All user progress
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  progress:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Progress'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /progress/stats:
+    get:
+      tags: [Progress]
+      summary: Get overall progress statistics
+      operationId: getProgressStats
+      responses:
+        '200':
+          description: Progress statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgressStats'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ==================== RECOMMENDATIONS ====================
+  /recommendations:
+    get:
+      tags: [Recommendations]
+      summary: Get personalized recommendations
+      description: Returns up to 5 personalized chapter recommendations
+      operationId: getRecommendations
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 5
+            minimum: 1
+            maximum: 10
+      responses:
+        '200':
+          description: Recommendations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recommendations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Recommendation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /recommendations/refresh:
+    post:
+      tags: [Recommendations]
+      summary: Manually refresh recommendations
+      description: Clear cache and regenerate recommendations
+      operationId: refreshRecommendations
+      responses:
+        '200':
+          description: Recommendations refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recommendations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Recommendation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ==================== BOOKMARKS ====================
+  /bookmarks:
+    get:
+      tags: [Bookmarks]
+      summary: Get all user bookmarks
+      operationId: getAllBookmarks
+      parameters:
+        - name: chapter_id
+          in: query
+          schema:
+            type: string
+          description: Filter by chapter ID
+      responses:
+        '200':
+          description: User bookmarks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bookmarks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Bookmark'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Bookmarks]
+      summary: Create bookmark
+      operationId: createBookmark
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookmarkCreate'
+      responses:
+        '201':
+          description: Bookmark created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bookmark'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Bookmark already exists or limit reached (200 max)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bookmarks/{bookmark_id}:
+    delete:
+      tags: [Bookmarks]
+      summary: Delete bookmark
+      operationId: deleteBookmark
+      parameters:
+        - name: bookmark_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Bookmark deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags: [Bookmarks]
+      summary: Update bookmark notes
+      operationId: updateBookmark
+      parameters:
+        - name: bookmark_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notes:
+                  type: string
+                  maxLength: 5000
+                  example: Important section for Chapter 3
+      responses:
+        '200':
+          description: Bookmark updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bookmark'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== HIGHLIGHTS ====================
+  /highlights:
+    post:
+      tags: [Highlights]
+      summary: Create highlight
+      operationId: createHighlight
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HighlightCreate'
+      responses:
+        '201':
+          description: Highlight created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Highlight'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Highlight limit reached (500 max per user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      tags: [Highlights]
+      summary: Get all user highlights
+      description: Returns all highlights, optionally grouped by chapter
+      operationId: getAllHighlights
+      parameters:
+        - name: chapter_id
+          in: query
+          schema:
+            type: string
+          description: Filter by chapter ID
+      responses:
+        '200':
+          description: User highlights
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  highlights:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Highlight'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /highlights/{chapter_id}:
+    get:
+      tags: [Highlights]
+      summary: Get highlights for specific chapter
+      operationId: getChapterHighlights
+      parameters:
+        - name: chapter_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: chapter-1-introduction
+      responses:
+        '200':
+          description: Chapter highlights
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  highlights:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Highlight'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /highlights/{highlight_id}:
+    delete:
+      tags: [Highlights]
+      summary: Delete highlight
+      operationId: deleteHighlight
+      parameters:
+        - name: highlight_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Highlight deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags: [Highlights]
+      summary: Update highlight
+      description: Update highlight color or notes
+      operationId: updateHighlight
+      parameters:
+        - name: highlight_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                color:
+                  type: string
+                  enum: [yellow, green, pink, blue, purple]
+                notes:
+                  type: string
+                  maxLength: 5000
+      responses:
+        '200':
+          description: Highlight updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Highlight'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== CHAT HISTORY ====================
+  /chat/history:
+    get:
+      tags: [Chat]
+      summary: Get chat history
+      description: Returns paginated chat history for authenticated user
+      operationId: getChatHistory
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: include_archived
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Chat history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chats:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ChatSession'
+                  total:
+                    type: integer
+                    example: 45
+                  limit:
+                    type: integer
+                    example: 20
+                  offset:
+                    type: integer
+                    example: 0
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /chat/history/search:
+    get:
+      tags: [Chat]
+      summary: Search chat history
+      description: Full-text search across user's chat messages
+      operationId: searchChatHistory
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+          example: robotics kinematics
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ChatMessage'
+                  total:
+                    type: integer
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /chat/history/{chat_id}:
+    delete:
+      tags: [Chat]
+      summary: Delete chat session
+      description: Permanently delete a chat session and all its messages
+      operationId: deleteChatSession
+      parameters:
+        - name: chat_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Chat session deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags: [Chat]
+      summary: Archive/unarchive chat session
+      operationId: updateChatSession
+      parameters:
+        - name: chat_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                is_archived:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Chat session updated
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /chat/history/all:
+    delete:
+      tags: [Chat]
+      summary: Clear all chat history
+      description: Permanently delete all user's chat sessions
+      operationId: clearAllChatHistory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - confirmation
+              properties:
+                confirmation:
+                  type: string
+                  example: DELETE_ALL
+                  description: Must be exactly "DELETE_ALL" to confirm
+      responses:
+        '200':
+          description: All chat history cleared
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Invalid confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ==================== DASHBOARD ====================
+  /dashboard:
+    get:
+      tags: [Dashboard]
+      summary: Get personalized dashboard data
+      description: |
+        Returns aggregated data for user dashboard:
+        - User profile
+        - Progress statistics
+        - Recent reading activity (last 5 chapters)
+        - Recommendations (top 3)
+        - Recent bookmarks (last 10)
+        - Recent chat sessions (last 5)
+      operationId: getDashboard
+      responses:
+        '200':
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+# ==================== COMPONENTS ====================
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
+      description: JWT access token stored in httpOnly cookie
+
+  schemas:
+    # ===== Authentication Schemas =====
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: SecureP@ssw0rd
+        difficulty_level:
+          type: string
+          enum: [beginner, intermediate, advanced]
+          default: beginner
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          example: SecureP@ssw0rd
+
+    LoginResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserResponse'
+        message:
+          type: string
+          example: Login successful
+
+    UserResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        difficulty_level:
+          type: string
+          enum: [beginner, intermediate, advanced]
+        created_at:
+          type: string
+          format: date-time
+          example: 2025-12-01T10:00:00Z
+        last_login_at:
+          type: string
+          format: date-time
+          example: 2025-12-01T15:30:00Z
+
+    # ===== User Schemas =====
+    UserProfile:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        difficulty_level:
+          type: string
+          enum: [beginner, intermediate, advanced]
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        last_login_at:
+          type: string
+          format: date-time
+
+    UserPreferences:
+      type: object
+      properties:
+        preference_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        theme:
+          type: string
+          enum: [light, dark, auto]
+          default: light
+        font_size:
+          type: string
+          enum: [small, medium, large, extra_large]
+          default: medium
+        layout_mode:
+          type: string
+          enum: [normal, compact, comfortable]
+          default: normal
+        show_progress_bar:
+          type: boolean
+          default: true
+        show_recommendations:
+          type: boolean
+          default: true
+        auto_save_progress:
+          type: boolean
+          default: true
+        updated_at:
+          type: string
+          format: date-time
+
+    UserPreferencesUpdate:
+      type: object
+      properties:
+        theme:
+          type: string
+          enum: [light, dark, auto]
+        font_size:
+          type: string
+          enum: [small, medium, large, extra_large]
+        layout_mode:
+          type: string
+          enum: [normal, compact, comfortable]
+        show_progress_bar:
+          type: boolean
+        show_recommendations:
+          type: boolean
+        auto_save_progress:
+          type: boolean
+
+    # ===== Progress Schemas =====
+    ProgressUpdate:
+      type: object
+      required:
+        - chapter_id
+        - progress_percentage
+      properties:
+        chapter_id:
+          type: string
+          example: chapter-1-introduction
+        section_id:
+          type: string
+          example: section-1-overview
+        progress_percentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 45
+        time_spent_seconds:
+          type: integer
+          minimum: 0
+          example: 120
+        last_position:
+          type: string
+          example: '{"scroll": 1234}'
+
+    Progress:
+      type: object
+      properties:
+        progress_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        chapter_id:
+          type: string
+        section_id:
+          type: string
+        progress_percentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+        time_spent_seconds:
+          type: integer
+        status:
+          type: string
+          enum: [unread, in_progress, completed]
+        last_read_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    ProgressStats:
+      type: object
+      properties:
+        completed_chapters:
+          type: integer
+          example: 5
+        in_progress_chapters:
+          type: integer
+          example: 2
+        total_chapters:
+          type: integer
+          example: 7
+        total_time_spent_seconds:
+          type: integer
+          example: 3600
+        completion_percentage:
+          type: number
+          format: float
+          example: 35.7
+
+    # ===== Recommendation Schemas =====
+    Recommendation:
+      type: object
+      properties:
+        recommendation_id:
+          type: string
+          format: uuid
+        chapter_id:
+          type: string
+          example: chapter-2-fundamentals
+        chapter_title:
+          type: string
+          example: Chapter 2: Robot Fundamentals
+        recommendation_type:
+          type: string
+          enum: [next_chapter, fill_gap, revisit, popular]
+        reasoning:
+          type: string
+          example: Continue your learning journey with the next chapter
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 3
+        score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          example: 0.895
+        created_at:
+          type: string
+          format: date-time
+
+    # ===== Bookmark Schemas =====
+    BookmarkCreate:
+      type: object
+      required:
+        - chapter_id
+        - section_id
+      properties:
+        chapter_id:
+          type: string
+          example: chapter-3-kinematics
+        section_id:
+          type: string
+          example: section-3-2-forward-kinematics
+        bookmark_text:
+          type: string
+          example: Forward Kinematics Equations
+        notes:
+          type: string
+          maxLength: 5000
+          example: Important for exam
+
+    Bookmark:
+      type: object
+      properties:
+        bookmark_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        chapter_id:
+          type: string
+        section_id:
+          type: string
+        bookmark_text:
+          type: string
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # ===== Highlight Schemas =====
+    HighlightCreate:
+      type: object
+      required:
+        - chapter_id
+        - highlighted_text
+        - start_offset
+        - end_offset
+      properties:
+        chapter_id:
+          type: string
+          example: chapter-4-dynamics
+        highlighted_text:
+          type: string
+          example: The Jacobian matrix relates joint velocities to end-effector velocities
+        start_offset:
+          type: integer
+          minimum: 0
+          example: 1234
+        end_offset:
+          type: integer
+          minimum: 1
+          example: 1310
+        color:
+          type: string
+          enum: [yellow, green, pink, blue, purple]
+          default: yellow
+        notes:
+          type: string
+          maxLength: 5000
+
+    Highlight:
+      type: object
+      properties:
+        highlight_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        chapter_id:
+          type: string
+        highlighted_text:
+          type: string
+        start_offset:
+          type: integer
+        end_offset:
+          type: integer
+        color:
+          type: string
+          enum: [yellow, green, pink, blue, purple]
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # ===== Chat Schemas =====
+    ChatSession:
+      type: object
+      properties:
+        chat_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        last_message_at:
+          type: string
+          format: date-time
+        message_count:
+          type: integer
+        is_archived:
+          type: boolean
+        preview:
+          type: string
+          description: First message preview
+          example: What is forward kinematics?
+
+    ChatMessage:
+      type: object
+      properties:
+        message_id:
+          type: string
+          format: uuid
+        chat_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        query_type:
+          type: string
+          enum: [rag, selection]
+          nullable: true
+        sources:
+          type: array
+          items:
+            type: object
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    # ===== Dashboard Schema =====
+    Dashboard:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserProfile'
+        progress_stats:
+          $ref: '#/components/schemas/ProgressStats'
+        recent_progress:
+          type: array
+          items:
+            $ref: '#/components/schemas/Progress'
+          maxItems: 5
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recommendation'
+          maxItems: 3
+        recent_bookmarks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Bookmark'
+          maxItems: 10
+        recent_chats:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatSession'
+          maxItems: 5
+
+    # ===== Error Schema =====
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Invalid credentials
+        message:
+          type: string
+          example: Email or password is incorrect
+        status_code:
+          type: integer
+          example: 401
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Validation Error
+            message: Invalid email format
+            status_code: 400
+
+    Unauthorized:
+      description: Unauthorized - authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Unauthorized
+            message: Authentication required
+            status_code: 401
+
+    Forbidden:
+      description: Forbidden - insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Forbidden
+            message: You do not have permission to access this resource
+            status_code: 403
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Not Found
+            message: Resource not found
+            status_code: 404
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Internal Server Error
+            message: An unexpected error occurred
+            status_code: 500

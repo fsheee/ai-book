@@ -28,6 +28,7 @@ export class RagChatbotAPI {
     this.baseURL = baseURL.replace(/\/$/, ''); // Remove trailing slash
     this.apiKey = apiKey;
     this.timeout = timeout;
+    this.activeEventSource = null; // Track active EventSource connection
   }
 
   /**
@@ -184,6 +185,13 @@ export class RagChatbotAPI {
   streamQuery({ question, user_id, chat_id = null }, onToken, onComplete = null, onError = null) {
     const validatedQuestion = this._validateQuestion(question);
 
+    // Close any existing EventSource connection
+    if (this.activeEventSource) {
+      console.log('Closing previous EventSource connection');
+      this.activeEventSource.close();
+      this.activeEventSource = null;
+    }
+
     const url = `${this.baseURL}/rag/query`;
     let eventSource = null;
     let accumulatedAnswer = '';
@@ -207,19 +215,22 @@ export class RagChatbotAPI {
         },
       });
 
+      // Track this as the active connection
+      this.activeEventSource = eventSource;
+
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
 
-          if (data.done) {
+          if (data.type === 'done') {
             // Final message with complete response
             finalResponse = {
               answer: accumulatedAnswer,
               sources: data.sources || [],
-              chat_id: data.chat_id,
-              latency_ms: data.latency_ms,
-              model_used: data.model_used,
-              tokens_used: data.tokens_used,
+              chat_id: data.metadata?.chat_id || chat_id,
+              latency_ms: data.metadata?.latency_ms || 0,
+              model_used: data.metadata?.model_used,
+              tokens_used: data.metadata?.tokens_used,
             };
 
             if (onComplete) {
@@ -227,10 +238,20 @@ export class RagChatbotAPI {
             }
 
             eventSource.close();
-          } else if (data.token) {
+          } else if (data.type === 'token' && data.content !== null) {
             // Streaming token
-            accumulatedAnswer += data.token;
-            onToken(data.token);
+            accumulatedAnswer += data.content;
+            onToken(data.content);
+          } else if (data.type === 'context' && data.retrieved_chunks) {
+            // Context chunks received (optional to display)
+            console.log('Retrieved context chunks:', data.retrieved_chunks);
+          } else if (data.type === 'error') {
+            // Error from backend
+            if (onError) {
+              onError(new RagChatbotAPIError(data.content || 'Backend error'));
+            }
+            eventSource.close();
+            this.activeEventSource = null; // Clear active connection
           }
         } catch (parseError) {
           console.error('Failed to parse SSE message:', parseError);
@@ -244,6 +265,7 @@ export class RagChatbotAPI {
       eventSource.onerror = (error) => {
         console.error('EventSource error:', error);
         eventSource.close();
+        this.activeEventSource = null; // Clear active connection
 
         if (onError) {
           onError(
@@ -258,6 +280,7 @@ export class RagChatbotAPI {
       return () => {
         if (eventSource) {
           eventSource.close();
+          this.activeEventSource = null; // Clear active connection
         }
       };
     } catch (error) {
@@ -322,6 +345,13 @@ export class RagChatbotAPI {
     const validatedQuestion = this._validateQuestion(question);
     const validatedText = this._validateSelectedText(selected_text);
 
+    // Close any existing EventSource connection
+    if (this.activeEventSource) {
+      console.log('Closing previous EventSource connection (selection)');
+      this.activeEventSource.close();
+      this.activeEventSource = null;
+    }
+
     const url = `${this.baseURL}/rag/from-selection`;
     let eventSource = null;
     let accumulatedAnswer = '';
@@ -340,16 +370,19 @@ export class RagChatbotAPI {
     try {
       eventSource = new EventSource(`${url}?${queryParams.toString()}`);
 
+      // Track this as the active connection
+      this.activeEventSource = eventSource;
+
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
 
-          if (data.done) {
+          if (data.type === 'done') {
             const finalResponse = {
               answer: accumulatedAnswer,
               sources: [], // Selection queries have no sources
-              chat_id: data.chat_id,
-              latency_ms: data.latency_ms,
+              chat_id: data.metadata?.chat_id || chat_id,
+              latency_ms: data.metadata?.latency_ms || 0,
             };
 
             if (onComplete) {
@@ -357,9 +390,16 @@ export class RagChatbotAPI {
             }
 
             eventSource.close();
-          } else if (data.token) {
-            accumulatedAnswer += data.token;
-            onToken(data.token);
+            this.activeEventSource = null; // Clear active connection
+          } else if (data.type === 'token' && data.content !== null) {
+            accumulatedAnswer += data.content;
+            onToken(data.content);
+          } else if (data.type === 'error') {
+            if (onError) {
+              onError(new RagChatbotAPIError(data.content || 'Backend error'));
+            }
+            eventSource.close();
+            this.activeEventSource = null; // Clear active connection
           }
         } catch (parseError) {
           console.error('Failed to parse SSE message:', parseError);
@@ -373,6 +413,7 @@ export class RagChatbotAPI {
       eventSource.onerror = (error) => {
         console.error('EventSource error:', error);
         eventSource.close();
+        this.activeEventSource = null; // Clear active connection
 
         if (onError) {
           onError(new RagChatbotAPIError('Streaming connection failed'));
@@ -382,6 +423,7 @@ export class RagChatbotAPI {
       return () => {
         if (eventSource) {
           eventSource.close();
+          this.activeEventSource = null; // Clear active connection
         }
       };
     } catch (error) {

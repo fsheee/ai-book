@@ -172,6 +172,30 @@ async def _perform_rag_query(
         raise
 
 
+@router.get("/query")
+@limiter.limit(get_rate_limit_string())
+async def rag_query_get(
+    question: str,
+    user_id: str,
+    stream: bool = True,
+    chat_id: str = None,
+    request: Request = None
+):
+    """
+    Perform RAG query via GET (for EventSource/SSE streaming).
+    Note: No API key auth because EventSource can't send custom headers.
+    """
+    # Generate chat_id if not provided
+    if not chat_id:
+        chat_id = f"chat_{uuid4().hex[:16]}"
+
+    # Always stream for GET requests (EventSource requirement)
+    return StreamingResponse(
+        _stream_rag_query(question, chat_id, request),
+        media_type="text/event-stream"
+    )
+
+
 @router.post("/query", response_model=RagQueryResponse)
 @limiter.limit(get_rate_limit_string())
 async def rag_query(
@@ -273,7 +297,7 @@ async def _stream_rag_query(
         full_answer = ""
         async for token in llm_service.generate_answer_stream(
             question=question,
-            context_chunks=context_chunks if context_chunks else None,
+            context_chunks=context_chunks,  # Pass as-is (empty list is valid)
             chat_history=chat_history if chat_history else None
         ):
             full_answer += token
@@ -327,6 +351,36 @@ async def _stream_rag_query(
             content=str(e)
         )
         yield f"data: {error_event.json()}\n\n"
+
+
+@router.get("/from-selection")
+@limiter.limit(get_rate_limit_string())
+async def selection_query_get(
+    question: str,
+    selected_text: str,
+    user_id: str,
+    stream: bool = True,
+    chat_id: str = None,
+    request: Request = None
+):
+    """
+    Perform query on user-selected text via GET (for EventSource/SSE streaming).
+    Note: No API key auth because EventSource can't send custom headers.
+    """
+    # Generate chat_id if not provided
+    if not chat_id:
+        chat_id = f"chat_{uuid4().hex[:16]}"
+
+    # Always stream for GET requests (EventSource requirement)
+    return StreamingResponse(
+        _stream_selection_query(
+            question=question,
+            selected_text=selected_text,
+            chat_id=chat_id,
+            request=request
+        ),
+        media_type="text/event-stream"
+    )
 
 
 @router.post("/from-selection")

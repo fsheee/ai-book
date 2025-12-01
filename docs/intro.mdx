@@ -1,0 +1,82 @@
+---
+id: intro
+title: Introduction to Physical AI and Humanoid Robotics
+sidebar_position: 1
+---
+
+# Introduction to Physical AI and Humanoid Robotics
+
+Welcome to the comprehensive guide on Physical AI and Humanoid Robotics. This textbook covers the fundamental concepts, technologies, and applications of building intelligent humanoid robots.
+
+## What is Physical AI?
+
+Physical AI refers to artificial intelligence systems that interact with the physical world through robotic platforms. Unlike pure software AI, physical AI must deal with:
+
+- **Sensor Integration**: Processing data from cameras, LiDAR, IMUs, and tactile sensors
+- **Actuator Control**: Managing motors, servos, and hydraulic systems
+- **Real-time Decision Making**: Computing control commands within strict time constraints
+- **Environmental Uncertainty**: Handling unpredictable physical interactions
+
+## What are Humanoid Robots?
+
+Humanoid robots are robots with a body shape built to resemble the human body. They typically have:
+
+- A torso with a head
+- Two arms with hands
+- Two legs for bipedal locomotion
+- Sensors mimicking human senses (vision, touch, hearing)
+
+Famous examples include:
+- **Atlas** by Boston Dynamics
+- **Optimus** by Tesla
+- **Digit** by Agility Robotics
+- **ASIMO** by Honda (retired)
+
+## Key Challenges
+
+Building humanoid robots involves solving several difficult problems:
+
+### 1. Inverse Kinematics
+
+Inverse kinematics (IK) is the mathematical process of calculating the joint angles needed to position the end-effector (hand, foot) at a desired location in space. This is crucial for:
+- Reaching for objects
+- Walking and maintaining balance
+- Manipulating tools
+
+### 2. Sensor Fusion
+
+Sensor fusion combines data from multiple sensors to create a more accurate understanding of the environment. For example:
+- Combining camera images with LiDAR depth data
+- Fusing IMU readings with visual odometry
+- Integrating force sensors with position feedback
+
+### 3. Balance and Locomotion
+
+Bipedal locomotion is inherently unstable. Humanoid robots must:
+- Continuously adjust their center of mass
+- React to external disturbances
+- Plan footstep sequences
+- Use techniques like Zero Moment Point (ZMP) control
+
+## Applications
+
+Humanoid robots have potential applications in:
+
+- **Manufacturing**: Working alongside humans in factories
+- **Healthcare**: Assisting elderly care and rehabilitation
+- **Disaster Response**: Operating in environments too dangerous for humans
+- **Service Industry**: Hospitality, retail, and customer service
+- **Space Exploration**: Performing tasks in space stations or planetary surfaces
+
+## Course Structure
+
+This textbook is organized into the following modules:
+
+1. **Fundamentals** - Robot anatomy, kinematics, dynamics
+2. **Perception** - Computer vision, sensor fusion, SLAM
+3. **Control** - PID control, model predictive control, whole-body control
+4. **Planning** - Path planning, motion planning, task planning
+5. **Learning** - Reinforcement learning, imitation learning, sim-to-real transfer
+6. **Systems** - ROS 2, simulation environments, deployment
+
+By the end of this course, you will understand how to design, simulate, and deploy intelligent humanoid robotic systems.
