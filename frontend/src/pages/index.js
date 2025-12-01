@@ -46,7 +46,7 @@ export default function Home() {
         </section>
 
         {/* Features Section */}
-        <section style={{background: 'var(--ifm-color-emphasis-100)', padding: '3rem 0'}}>
+        <section className={styles.featuresSection}>
           <div className="container">
             <div className="row">
               <div className="col col--12 text--center">
@@ -54,28 +54,28 @@ export default function Home() {
               </div>
             </div>
             <div className="row">
-              <div className="col col--6" style={{padding: '1rem'}}>
-                <div style={{padding: '1.5rem', background: 'var(--ifm-card-background-color)', borderRadius: '8px', height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid var(--ifm-color-emphasis-300)'}}>
-                  <h3 style={{color: 'var(--ifm-heading-color)'}}>📝 Interactive Code Examples</h3>
-                  <p style={{color: 'var(--ifm-font-color-base)'}}>Learn with hands-on Python code examples that you can run and modify directly in your browser.</p>
+              <div className={clsx('col col--6', styles.featureCol)}>
+                <div className={styles.featureCard}>
+                  <h3 className={styles.featureCardTitle}>📝 Interactive Code Examples</h3>
+                  <p className={styles.featureCardText}>Learn with hands-on Python code examples that you can run and modify directly in your browser.</p>
                 </div>
               </div>
-              <div className="col col--6" style={{padding: '1rem'}}>
-                <div style={{padding: '1.5rem', background: 'var(--ifm-card-background-color)', borderRadius: '8px', height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid var(--ifm-color-emphasis-300)'}}>
-                  <h3 style={{color: 'var(--ifm-heading-color)'}}>🔢 Mathematical Derivations</h3>
-                  <p style={{color: 'var(--ifm-font-color-base)'}}>Clear mathematical explanations with beautiful LaTeX rendering for complex equations and proofs.</p>
+              <div className={clsx('col col--6', styles.featureCol)}>
+                <div className={styles.featureCard}>
+                  <h3 className={styles.featureCardTitle}>🔢 Mathematical Derivations</h3>
+                  <p className={styles.featureCardText}>Clear mathematical explanations with beautiful LaTeX rendering for complex equations and proofs.</p>
                 </div>
               </div>
-              <div className="col col--6" style={{padding: '1rem'}}>
-                <div style={{padding: '1.5rem', background: 'var(--ifm-card-background-color)', borderRadius: '8px', height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid var(--ifm-color-emphasis-300)'}}>
-                  <h3 style={{color: 'var(--ifm-heading-color)'}}>📊 Visual Diagrams</h3>
-                  <p style={{color: 'var(--ifm-font-color-base)'}}>Understand concepts faster with detailed diagrams, flowcharts, and visual representations.</p>
+              <div className={clsx('col col--6', styles.featureCol)}>
+                <div className={styles.featureCard}>
+                  <h3 className={styles.featureCardTitle}>📊 Visual Diagrams</h3>
+                  <p className={styles.featureCardText}>Understand concepts faster with detailed diagrams, flowcharts, and visual representations.</p>
                 </div>
               </div>
-              <div className="col col--6" style={{padding: '1rem'}}>
-                <div style={{padding: '1.5rem', background: 'var(--ifm-card-background-color)', borderRadius: '8px', height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid var(--ifm-color-emphasis-300)'}}>
-                  <h3 style={{color: 'var(--ifm-heading-color)'}}>🤖 RAG-Powered Chatbot</h3>
-                  <p style={{color: 'var(--ifm-font-color-base)'}}>Get instant answers to your questions with our intelligent chatbot that understands the textbook content.</p>
+              <div className={clsx('col col--6', styles.featureCol)}>
+                <div className={styles.featureCard}>
+                  <h3 className={styles.featureCardTitle}>🤖 RAG-Powered Chatbot</h3>
+                  <p className={styles.featureCardText}>Get instant answers to your questions with our intelligent chatbot that understands the textbook content.</p>
                 </div>
               </div>
             </div>

@@ -1,5 +1,28 @@
 # RAG Chatbot Implementation - Complete Summary
 
+**Project**: Physical AI & Humanoid Robotics Textbook
+
+## Recent Fix: Landing Page Cards (2025-12-01)
+
+**Issue**: Feature cards on landing page displayed correctly in local development but not on GitHub Pages.
+
+**Root Cause**: Inline JSX styles with CSS custom properties (`var(--ifm-card-background-color)`, etc.) were not resolved during Docusaurus production build optimization.
+
+**Solution**: Refactored to CSS modules
+- Created styles in `frontend/src/pages/index.module.css`
+- Replaced all inline styles with CSS module classes
+- Ensured CSS custom properties are processed through Docusaurus CSS pipeline
+
+**Files Modified**:
+- `frontend/src/pages/index.js` - Refactored Features section JSX
+- `frontend/src/pages/index.module.css` - Added feature card styles
+
+**Result**: ✅ Landing page cards now display correctly on both local and GitHub Pages deployments
+
+---
+
+## RAG Chatbot Implementation
+
 **Project**: Physical AI & Humanoid Robotics Tesp.
 **Technical Details**:
 ```python

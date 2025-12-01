@@ -22,3 +22,33 @@
   justify-content: center;
   margin-top: 2rem;
 }
+
+/* Feature Cards Section
+ * Using CSS modules instead of inline styles ensures Docusaurus CSS custom properties
+ * (--ifm-*) are properly resolved during production build for GitHub Pages deployment.
+ */
+.featuresSection {
+  background: var(--ifm-color-emphasis-100);
+  padding: 3rem 0;
+}
+
+.featureCard {
+  padding: 1.5rem;
+  background: var(--ifm-card-background-color);
+  border-radius: 8px;
+  height: 100%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.featureCardTitle {
+  color: var(--ifm-heading-color);
+}
+
+.featureCardText {
+  color: var(--ifm-font-color-base);
+}
+
+.featureCol {
+  padding: 1rem;
+}
