@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
+import { AuthProvider } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
+import AuthModal from '../components/Auth/AuthModal';
+import Dashboard from '../components/Dashboard/Dashboard';
 import styles from './index.module.css';
 
-function HomepageHeader() {
+function HomepageHeader({ onLoginClick }) {
   const {siteConfig} = useDocusaurusContext();
   return (
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
@@ -18,20 +22,57 @@ function HomepageHeader() {
             to="/docs/Chapter1">
             Start Learning
           </Link>
+          <button
+            className="button button--outline button--secondary button--lg"
+            onClick={onLoginClick}
+            style={{marginLeft: '1rem'}}>
+            Login / Sign Up
+          </button>
         </div>
       </div>
     </header>
   );
 }
 
-export default function Home() {
+function HomeContent() {
   const {siteConfig} = useDocusaurusContext();
+  const { user, loading, logout } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  if (loading) {
+    return (
+      <Layout
+        title={`Welcome`}
+        description="AI-Generated Textbook for Physical AI & Humanoid Robotics">
+        <div style={{padding: '4rem 0', textAlign: 'center'}}>
+          <p>Loading...</p>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout
       title={`Welcome`}
       description="AI-Generated Textbook for Physical AI & Humanoid Robotics">
-      <HomepageHeader />
-      <main>
+      {user ? (
+        // Authenticated: Show personalized dashboard
+        <>
+          <div style={{textAlign: 'right', padding: '1rem 2rem', borderBottom: '1px solid var(--ifm-color-emphasis-300)'}}>
+            <button
+              className="button button--sm button--outline button--secondary"
+              onClick={logout}
+              style={{fontSize: '0.9rem'}}>
+              Logout
+            </button>
+          </div>
+          <Dashboard user={user} />
+        </>
+      ) : (
+        // Unauthenticated: Show generic landing page
+        <>
+          <HomepageHeader onLoginClick={() => setShowAuthModal(true)} />
+          <main>
         {/* About Section */}
         <section className="container" style={{padding: '3rem 0'}}>
           <div className="row">
@@ -81,7 +122,22 @@ export default function Home() {
             </div>
           </div>
         </section>
-      </main>
+          </main>
+          <AuthModal
+            isOpen={showAuthModal}
+            onClose={() => setShowAuthModal(false)}
+            initialMode="login"
+          />
+        </>
+      )}
     </Layout>
+  );
+}
+
+export default function Home() {
+  return (
+    <AuthProvider>
+      <HomeContent />
+    </AuthProvider>
   );
 }
